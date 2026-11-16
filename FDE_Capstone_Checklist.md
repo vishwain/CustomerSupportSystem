@@ -1,6 +1,6 @@
 # FDE Capstone: Step-by-Step Checklist (CloudServe AI Support System)
 
-Deadline: 13 September, 23:59. Individual project.
+Deadline: 21 November, 23:59. Individual project.
 Rule: tick a box ONLY after you confirm the step is done. Do not skip ahead; each stage feeds the next.
 Non-code files live in Drive FDECapstone. Reference/ is read-only. Fill workbooks in Workbooks/.
 
@@ -20,15 +20,15 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 0.9 Copy requirements.txt + .env.example into repo; install dependencies
 - [x] 0.10 Get free OpenRouter/Groq key, store in .env only; confirm a real model call returns text
 - [x] 0.11 Create repo skeleton per Setup Guide section 8 (src/, prompts/, tests/, evaluation/, docs/, data/)
-- [ ] 0.12 Clone repo fresh and follow own README once (day-1 rehearsal)
-- [ ] 0.13 Start Effort Log (Workbooks/Effort_Log.docx): details section + first entries
-- [ ] 0.14 Note which stakeholder-interview/hidden-set details are unclear (see Open Clarifications at bottom)
+- [x] 0.12 Clone repo fresh and follow own README once (day-1 rehearsal)
+- [x] 0.13 Start Effort Log (Workbooks/Effort_Log.docx): details section + first entries
+- [x] 0.14 Note which stakeholder-interview/hidden-set details are unclear (see Open Clarifications at bottom)
 
 ## Stage 1: Discovery (Week 1, Days 1-3) -> Workbooks/Stage_1_Discovery_Workbook.docx
-- [ ] 1.1 Read all five interview transcripts (Stakeholder_Interviews.docx) before writing anything
-- [ ] 1.2 Section 1 table: per stakeholder (Marcus, Sofia, Daniel, Ines, Ravi): told you / do not know / verify in data
-- [ ] 1.3 Record at least 3 disagreements between accounts, and how the data settles each
-- [ ] 1.4 Record "what nobody said" (at least 3 items) and how to check
+- [x] 1.1 Read all five interview transcripts (Stakeholder_Interviews.docx) before writing anything
+- [x] 1.2 Section 1 table: per stakeholder (Marcus, Sofia, Daniel, Ines, Ravi): told you / do not know / verify in data
+- [x] 1.3 Record at least 3 disagreements between accounts, and how the data settles each
+- [x] 1.4 Record "what nobody said" (at least 3 items) and how to check
 - [ ] 1.5 Load development_tickets.json; fill Section 2 data table from counts (channel, intent, urgency, FCR, CSAT, top question, answerable-from-docs %, non-fluent segment, tier outcomes, repeat contacts)
 - [ ] 1.6 Note the surprises in the figures (answerable-from-docs % and non-fluent segment matter most)
 - [ ] 1.7 Section 3: volume vs effort by ticket category (7 rows) with evidence
@@ -151,7 +151,7 @@ Source code
 Packaging (day before deadline)
 - [ ] 6.23 Build FirstnameLastname_Capstone_Submission.zip with exactly 4 folders: 01_Video, 02_Report, 03_Workbooks, 04_Source_Code
 - [ ] 6.24 Run final checklist from Submission_Guide section 5
-- [ ] 6.25 Submit before 13 September 23:59
+- [ ] 6.25 Submit before 21 November 23:59
 
 ---
 
