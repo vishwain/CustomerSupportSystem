@@ -41,7 +41,7 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.14 Write the one-paragraph problem statement in non-technical language
 - [x] 1.15 Test statement against each of the 5 transcripts (would each person recognise it?); fix framing if not
 - [x] 1.16 Decide in week 1 what the decision log will record (governance by design)
-- [ ] 1.17 Update Effort Log
+- [x] 1.17 Update Effort Log
 
 ## Stage 2: Requirements, PRD v1.0 (Week 1, Days 4-5) -> Workbooks/Stage_2_PRD_Template.docx
 - [ ] 2.1 Document control (version 1.0, author, date, status)
