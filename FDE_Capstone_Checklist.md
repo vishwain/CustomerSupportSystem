@@ -35,8 +35,8 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.8 Section 3: reconstruct Sofia's agent steps, time per step, automatable or not
 - [x] 1.9 Section 4: client success measures, who watches, current value, what success means
 - [x] 1.10 Complete the three "sentence test" prompts using only recorded figures
-- [ ] 1.11 Section 5: data sources table (tickets, docs, past resolutions, customer records) + private data present
-- [ ] 1.12 Section 5: initial risk register (4 given rows + your own)
+- [x] 1.11 Section 5: data sources table (tickets, docs, past resolutions, customer records) + private data present
+- [x] 1.12 Section 5: initial risk register (4 given rows + your own)
 - [ ] 1.13 Section 6: problem statement table, every clause cited to a workbook row
 - [ ] 1.14 Write the one-paragraph problem statement in non-technical language
 - [ ] 1.15 Test statement against each of the 5 transcripts (would each person recognise it?); fix framing if not
@@ -164,3 +164,4 @@ Packaging (day before deadline)
 - Some docs say validation set can be used any number of times; Brief says validation_tickets.json is "final evaluation, run once". Decide a protocol (suggest: dev 500 for building, validation 80 for checking, hidden set not available; log how often each used) and record it in the PRD.
 - Some docs say the gate runs on "the validation set", others on the hidden set. Build the harness to accept any path.
 - Stakeholder interviews are fictional transcripts; the "interview a real person" step in the README means testing your problem statement against the transcripts' viewpoints.
+- Data handling: full dataset JSONs are committed in data/ (user confirmed at 1.11). Record this in the PRD and never commit a hidden set.
