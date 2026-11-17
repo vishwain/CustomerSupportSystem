@@ -37,10 +37,10 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.10 Complete the three "sentence test" prompts using only recorded figures
 - [x] 1.11 Section 5: data sources table (tickets, docs, past resolutions, customer records) + private data present
 - [x] 1.12 Section 5: initial risk register (4 given rows + your own)
-- [ ] 1.13 Section 6: problem statement table, every clause cited to a workbook row
-- [ ] 1.14 Write the one-paragraph problem statement in non-technical language
-- [ ] 1.15 Test statement against each of the 5 transcripts (would each person recognise it?); fix framing if not
-- [ ] 1.16 Decide in week 1 what the decision log will record (governance by design)
+- [x] 1.13 Section 6: problem statement table, every clause cited to a workbook row
+- [x] 1.14 Write the one-paragraph problem statement in non-technical language
+- [x] 1.15 Test statement against each of the 5 transcripts (would each person recognise it?); fix framing if not
+- [x] 1.16 Decide in week 1 what the decision log will record (governance by design)
 - [ ] 1.17 Update Effort Log
 
 ## Stage 2: Requirements, PRD v1.0 (Week 1, Days 4-5) -> Workbooks/Stage_2_PRD_Template.docx
