@@ -31,10 +31,10 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.4 Record "what nobody said" (at least 3 items) and how to check
 - [x] 1.5 Load development_tickets.json; fill Section 2 data table from counts (channel, intent, urgency, FCR, CSAT, top question, answerable-from-docs %, non-fluent segment, tier outcomes, repeat contacts)
 - [x] 1.6 Note the surprises in the figures (answerable-from-docs % and non-fluent segment matter most)
-- [ ] 1.7 Section 3: volume vs effort by ticket category (7 rows) with evidence
-- [ ] 1.8 Section 3: reconstruct Sofia's agent steps, time per step, automatable or not
-- [ ] 1.9 Section 4: client success measures, who watches, current value, what success means
-- [ ] 1.10 Complete the three "sentence test" prompts using only recorded figures
+- [x] 1.7 Section 3: volume vs effort by ticket category (7 rows) with evidence
+- [x] 1.8 Section 3: reconstruct Sofia's agent steps, time per step, automatable or not
+- [x] 1.9 Section 4: client success measures, who watches, current value, what success means
+- [x] 1.10 Complete the three "sentence test" prompts using only recorded figures
 - [ ] 1.11 Section 5: data sources table (tickets, docs, past resolutions, customer records) + private data present
 - [ ] 1.12 Section 5: initial risk register (4 given rows + your own)
 - [ ] 1.13 Section 6: problem statement table, every clause cited to a workbook row
@@ -136,18 +136,22 @@ Report (single PDF, 20-30 pages excl. appendices; FirstnameLastname_Capstone_Rep
 - [ ] 6.11 Appendices (workbooks, prompt register, result tables, confusion matrix)
 - [ ] 6.12 AI tool use declaration (about half a page)
 - [ ] 6.13 All figures/tables numbered, captioned, referenced in text
+
 Video (MP4 1080p, 20 min +/- 2, FirstnameLastname_Capstone_Video.mp4)
 - [ ] 6.14 Script/outline following 0-2 problem, 2-5 discovery, 5-7 system, 7-14 demo, 14-17 numbers, 17-18 governance, 18-20 next
 - [ ] 6.15 Test audio, enlarge fonts; prepare demo: success, escalation, guardrail block, unattended full run evidence (>= 7 min live)
 - [ ] 6.16 Record take 1 by mid-week 3; review
 - [ ] 6.17 Record take 2; verify length 18-22 min, audio, legibility, you on camera at intro and close
+
 Workbooks and logs
 - [ ] 6.18 All five stage workbooks genuinely completed
 - [ ] 6.19 Effort Log finished: entries throughout, hours by stage reconcile, estimates vs reality, reflection answers, declaration (FirstnameLastname_Effort_Log.pdf)
+
 Source code
 - [ ] 6.20 Fresh clone on a clean machine: README steps work, tests pass, full run works
 - [ ] 6.21 Credential scan of code and history; attribution for external/AI-generated code
 - [ ] 6.22 Repo structure matches Submission Guide (README, requirements.txt, .env.example, src, prompts, tests, evaluation, docs, data, .github/workflows)
+
 Packaging (day before deadline)
 - [ ] 6.23 Build FirstnameLastname_Capstone_Submission.zip with exactly 4 folders: 01_Video, 02_Report, 03_Workbooks, 04_Source_Code
 - [ ] 6.24 Run final checklist from Submission_Guide section 5
