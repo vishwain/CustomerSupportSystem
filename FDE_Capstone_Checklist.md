@@ -29,8 +29,8 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.2 Section 1 table: per stakeholder (Marcus, Sofia, Daniel, Ines, Ravi): told you / do not know / verify in data
 - [x] 1.3 Record at least 3 disagreements between accounts, and how the data settles each
 - [x] 1.4 Record "what nobody said" (at least 3 items) and how to check
-- [ ] 1.5 Load development_tickets.json; fill Section 2 data table from counts (channel, intent, urgency, FCR, CSAT, top question, answerable-from-docs %, non-fluent segment, tier outcomes, repeat contacts)
-- [ ] 1.6 Note the surprises in the figures (answerable-from-docs % and non-fluent segment matter most)
+- [x] 1.5 Load development_tickets.json; fill Section 2 data table from counts (channel, intent, urgency, FCR, CSAT, top question, answerable-from-docs %, non-fluent segment, tier outcomes, repeat contacts)
+- [x] 1.6 Note the surprises in the figures (answerable-from-docs % and non-fluent segment matter most)
 - [ ] 1.7 Section 3: volume vs effort by ticket category (7 rows) with evidence
 - [ ] 1.8 Section 3: reconstruct Sofia's agent steps, time per step, automatable or not
 - [ ] 1.9 Section 4: client success measures, who watches, current value, what success means
