@@ -70,5 +70,5 @@ Among 97 dev texts that repeat:
 - `.env` is correctly ignored.
 
 ## 8. Still open
-- Where the agents' private snippet files are, and whether any can be provided for review.
-- Whether the hidden set is 100 or 120 tickets. See `DocumentInconsistencies.md` I1.
+- Where the agents' private snippet files are, and whether any can be provided for review. Decided 18 Nov: not raised as a PRD open question; PRD Section 6 (not used) covers it.
+- ~~Whether the hidden set is 100 or 120 tickets.~~ Resolved 18 Nov (PRD OQ-03): size does not matter.

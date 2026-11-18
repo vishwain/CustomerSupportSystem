@@ -55,7 +55,7 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 2.9 Success measures table (baseline, target, how measured, reported by)
 - [x] 2.10 Open questions with owner and resolve-by date
 - [x] 2.11 Architecture design + justification (adapt Brief architecture where discovery warrants); initial risk assessment
-- [ ] 2.12 Engineer-could-build-it review of every requirement (20 min check)
+- [x] 2.12 Engineer-could-build-it review of every requirement (20 min check)
 - [ ] 2.13 Week-1 milestone check: discovery + PRD v1 done; update Effort Log
 
 ## Stage 3: Prompt library and specifications (Week 2, Days 1-2) -> Workbooks/Stage_3_Prompt_Library.docx
@@ -160,8 +160,8 @@ Packaging (day before deadline)
 ---
 
 ## Open clarifications noticed in the pack (resolve early; do not guess)
-- Hidden set size is stated as 100 in some docs and 120 in others; validation set is called 80 tickets.
+- Hidden set size is stated as 100 in some docs and 120 in others; validation set is called 80 tickets. RESOLVED 18 Nov (PRD OQ-03): no assessor answer; size does not matter, harness takes any number of tickets.
 - Some docs say validation set can be used any number of times; Brief says validation_tickets.json is "final evaluation, run once". Decide a protocol (suggest: dev 500 for building, validation 80 for checking, hidden set not available; log how often each used) and record it in the PRD.
-- Some docs say the gate runs on "the validation set", others on the hidden set. Build the harness to accept any path.
+- Some docs say the gate runs on "the validation set", others on the hidden set. Build the harness to accept any path. RESOLVED 18 Nov (PRD OQ-01): gate runs on the 80 validation tickets.
 - Stakeholder interviews are fictional transcripts; the "interview a real person" step in the README means testing your problem statement against the transcripts' viewpoints.
 - Data handling: full dataset JSONs are committed in data/ (user confirmed at 1.11). Record this in the PRD and never commit a hidden set.

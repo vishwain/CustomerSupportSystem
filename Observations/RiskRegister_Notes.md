@@ -18,7 +18,7 @@ Workbook: Section 5, Initial risk register. Eight rows: four starter, four added
 | 8 | Non-fluent customers can't use the reply | S2 non-fluent row. S1 reply-language row |
 
 ## Open points
-- Risk 5: "97% of automatable tickets right" = 60 / 62. Both are rounded workbook figures. Recompute from the script before it goes in the PRD.
+- Risk 5: "97% of automatable tickets right" = 60 / 62. Both are rounded workbook figures. Recomputed 18 Nov: 60 / 62.2 = 96.5%, rounds to ~97%. PRD figure stands.
 - Risk 3: Non-fluent shows no gap today. The risk is that retrieval creates one. Only the fairness audit can show it.
 - Risk 8: Nothing in the data tests reply comprehension. Needs hand review of drafts.
-- Likelihood and impact are my ratings (High/Medium/Severe). No scale is defined in the workbook. Agree one scale in the PRD (Brief §08 risk matrix).
+- Likelihood and impact are my ratings (High/Medium/Severe). No scale is defined in the workbook. Decided 18 Nov: Brief §08 3×3 matrix, Severe = High. Stated in PRD 10.7 with a rating per risk. All 8 risks carried into PRD 10.7.

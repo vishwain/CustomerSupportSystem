@@ -41,10 +41,10 @@ Use as the core of the PRD success measures (Stage 2).
 | Escalation ~4x cost | Section 3 evidence (Marcus) |
 | Wrong answers near zero | Section 4 wrong-answers row (Marcus) |
 
-## Choices made (confirm in PRD)
+## Choices made (confirmed in PRD, 18 Nov)
 - **FCR target 60%, not 65%.** Brief §7 success table. 65% kept as benchmark.
 - **Reply target = 2-hr SLA.** Brief §7's 5-min figure applies only to auto-responses. See `DocumentInconsistencies.md` I6.
-- **CSAT "toward 4.0", not "reach 4.0".** 2.97 → 4.0 in three months is not credible. State a 3-month interim target in the PRD.
+- **CSAT "toward 4.0", not "reach 4.0".** 2.97 → 4.0 in three months is not credible. Interim target set: 3.5 at 3 months, 4.0 end goal (PRD Section 8).
 - **No escalation target stated.** Brief's ≤30% is below the 37.8% label floor. Sentence 2 sets the floor as a failure signal instead.
 - **Judged-on measure = reply time.** It's what reaches the exec team. FCR is the driver. Both go in the PRD as primary measures.
 

@@ -38,6 +38,6 @@ Source of data figures: `docs/discovery_analysis.py` on `data/development_ticket
 ---
 
 ## 3. To raise with the assessor
-- I2: which rule governs the validation set.
-- I1 / I3: size of hidden set and which file the gate runs.
-- I7 / D1: whether the escalation target may be restated.
+- I2: which rule governs the validation set. Still open (PRD OQ-02, default: never tune on validation, log every run).
+- I1 / I3: RESOLVED 18 Nov. Gate runs on validation (OQ-01). Hidden-set size does not matter; harness takes any count (OQ-03).
+- I7 / D1: still open (PRD OQ-07, default: replay 50% or less, live 40% or less, never below 37.8%).

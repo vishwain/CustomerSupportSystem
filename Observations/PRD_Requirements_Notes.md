@@ -6,13 +6,13 @@ Feeds Stage 3 (prompt library), Stage 4 (sprint plan, cut order), Stage 5 (PRD r
 ---
 
 ## 1. MoSCoW split and a seed cut order (Stage 4)
-- 32 FRs: Must 20, Should 7, Could 4, Will not 1.
+- 34 FRs after the 2.12 review: Must 22, Should 7, Could 4, Will not 1 (FR-31 raised to Must, FR-33 Must and FR-34 Should added).
 - Must share is high (62%) because 12 acceptance criteria are pass/fail and each needs a Must. Defend this in Stage 4, don't hide it.
 - Suggested cut order, first to go:
   1. Could: FR-30 (draft edit status), FR-29 (per-article report), FR-10 (review date), FR-07 (restatement).
   2. Should: FR-06 (urgency queue order — no queue UI exists), FR-28 (80 vs 35 split — cheap, keep if possible), FR-20 (plain English), FR-18 (automated label), FR-31 (kill switch), FR-23 (commitment block), FR-14 (draft on escalation).
   3. Never cut: any Must. Cut intent classes instead (Build Spec §05: two intents done properly passes the gate).
-- FR-31 kill switch is Should in the PRD but the Governance Framework calls a missing one "your first governance finding". Consider raising it to Must in Stage 5.
+- FR-31 kill switch raised to Must in the 2.12 review.
 
 ## 2. FR → prompt hooks (Stage 3)
 | Prompt needed | FRs | Notes |
@@ -97,7 +97,7 @@ Feeds Stage 3 (prompt library), Stage 4 (sprint plan, cut order), Stage 5 (PRD r
 
 ## 13. Architecture (2.11): build notes and repo mismatches
 - Only one model-provider call per ticket (Generate). Classify, Retrieve, Route and Validate are local. Leaves one spare call under NFR-07 for a restatement step if AS-08 fails.
-- Classifier: MiniLM embeddings + logistic regression, calibrated on a dev hold-out split by text. Needs a saved model file or a deterministic train-on-start step for the clean-checkout run (A1). Decide in Stage 4.
+- Classifier: MiniLM embeddings + logistic regression, calibrated on a dev hold-out split by text. Decided 18 Nov: trained by a README command from dev data, seed 42, under 2 minutes; no model file committed (PRD FR-32).
 - Chunking: one passage per article section. Articles are 138-214 words, ~9 sections each, about 260 passages. Passage id = doc_id + section.
 - Retrieval query = ticket text + predicted intent description. Cheap help for non-fluent wording. Measure on build day 2.
 - Repo mismatches to fix (not PRD content):

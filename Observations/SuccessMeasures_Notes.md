@@ -14,8 +14,8 @@ Feed into PRD success measures (Stage 2) and the evaluation report.
 ## 2. Measures nobody owns
 | Measure | Gap | Action |
 |---|---|---|
-| CSAT | No interviewee quotes it. Brief 3.2, data 2.97. | Ask who reports it. Use data baseline, state both. |
-| Repeat contacts | Brief "not measured". Field exists (21.6%) but definition unclear. | Agree a definition before setting a target. |
+| CSAT | No interviewee quotes it. Brief 3.2, data 2.97. | Decided 18 Nov: live CSAT on the dashboard, monthly to Marcus. Target 3.5 in 3 months, 4.0 end goal (PRD Section 8). |
+| Repeat contacts | Brief "not measured". Field exists (21.6%). | Decided 18 Nov (OQ-17): repeat_contact field is the definition. Reported only, no v1 target. |
 | Agent workload | Only anecdote. No minutes per agent. | Proxy: escalation-weighted tickets, or minutes saved by drafts. |
 | Service per tier | Nobody watches. Enterprise already worst. | Add to fairness audit and monitoring dashboard. |
 | Service per fluency | Nobody watches. Currently no gap. | Monitor so the system doesn't create one. |
@@ -29,8 +29,8 @@ Feed into PRD success measures (Stage 2) and the evaluation report.
 ## 4. No cost data
 - Marcus: escalation costs ~4x a resolved ticket. No currency figure, no cost per ticket, no agent cost.
 - Can't state savings in money. Report minutes and escalations avoided instead.
-- Open question for the PRD: cost per ticket, cost per escalation.
+- Open question for the PRD: cost per ticket, cost per escalation. Added as PRD OQ-19 (owner Marcus, default: minutes and escalations avoided, no currency).
 
 ## 5. Still open in Section 4
-- The sentence test (three prompts below the table) is not yet filled.
-- Needs a decision on which targets to adopt where the Brief conflicts (FCR 60 vs 65, CSAT 4.0 vs 4.2, reply 2 hrs vs 5 min). See `DocumentInconsistencies.md` I4–I7.
+- ~~The sentence test is not yet filled.~~ Done (Stage 1 Section 4).
+- Needs a decision on which targets to adopt where the Brief conflicts (FCR 60 vs 65, CSAT 4.0 vs 4.2, reply 2 hrs vs 5 min). See `DocumentInconsistencies.md` I4–I7. Settled in PRD Section 8: FCR 60%, CSAT 3.5 then 4.0, reply 5 min auto / 2-hr SLA (business hours, customer region) escalated.

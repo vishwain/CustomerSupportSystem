@@ -39,7 +39,7 @@ Governance minimum is the base. "Added" marks my additions, each tied to a Stage
 | rule_fired | Added | Hard rule (security, data residency, compliance, billing dispute) vs threshold. A5 needs the same input to give the same routing |
 | doc_review_age | Added | `last_reviewed_days_ago` of each cited doc. Risk 4 (stale docs). Currently 0 for all 29 |
 | escalation_package | Added | What was passed to tier two, and what the system was unsure of (S3 step 8, Daniel) |
-| segment (tier, fluency, channel, region) | Added | For the fairness audit only. Never a model input (S5 decision, risk 3). |
+| ~~segment (tier, fluency, channel, region)~~ | Removed 18 Nov | Not logged. The evaluation layer joins segments from the input file by ticket_id (PRD FR-03, NFR-06). |
 | error, degraded_mode | Added | Provider timeout, no retrieval hit, malformed input. A11 |
 | latency_ms, tokens_in, tokens_out | Added | Cost per ticket and latency (S1 'cost per ticket' row) |
 
@@ -64,10 +64,10 @@ A8 check: open the log, count `final` rows against tickets processed. They must 
 - Setup Guide vector-store code reads `doc["id"]`. The real field in `documentation.json` is `doc_id`. As written it raises a KeyError.
 
 ## 5. Open points for the PRD
-1. **input_summary.** Store a 200-character excerpt that has passed the private-data scan, plus a hash of the full text? Or only the hash and rely on the ticket file? Recommend excerpt plus hash. Needs your decision.
-2. **Retention.** Months, as Governance says "reconstructable months later". Not defined. For the capstone, the SQLite file per run.
-3. **requirement_ids.** Null until FR ids exist in Stage 2. Must be non-null by build time.
-4. **Storage.** SQLite at `storage/decisions.db` (Setup Guide). `storage/` is gitignored, so the log itself is never committed. Commit a sample or the counts only.
+1. **input_summary.** Store a 200-character excerpt that has passed the private-data scan, plus a hash of the full text? Or only the hash and rely on the ticket file? Recommend excerpt plus hash. **Decided 18 Nov: excerpt plus SHA-256 (PRD 10.5).**
+2. **Retention.** **Decided 18 Nov: 12 months in live use; capstone keeps one SQLite file per run until submission (PRD 10.5).**
+3. **requirement_ids.** Resolved: FR ids exist (mapping in PRD_Requirements_Notes §6).
+4. **Storage.** SQLite at `storage/decisions.db` (Setup Guide). `storage/` is gitignored, so the log itself is never committed. **Decided 18 Nov: commit a 20-row log extract and the reconcile counts per run under evaluation/results/ (PRD 10.5).**
 
 ## 6. PRD hooks
 - NFR-05 Auditability: every ticket has one `final` row and the stage rows above. Verified by the reconcile script.

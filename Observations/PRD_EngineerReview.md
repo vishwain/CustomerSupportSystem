@@ -20,7 +20,7 @@ Figure 2 regenerated from `docs/architecture_flow.dot`.
 | FR-08 | U | No result count. Hit rate per passage or per article unclear. | Up to 5 passages; hit = expected doc among articles of top 3. |
 | FR-09 | T | Cutoff rule unstated. One feature-request ticket is a demo, not a test. | Highest cutoff keeping top-3 hit ≥85% on dev hold-out. Rates recorded. |
 | FR-10 | U | Data has `last_reviewed_days_ago`, not a date. | Carry that value. |
-| FR-11 | U, H | Retrieval-hit gate in 10.1 and diagram but not in the FR. "Set from data" had no rule. | Three gates stated. Threshold = lowest value with ≥90% automatic precision, 0 unsafe. **My pick of 90%: confirm.** |
+| FR-11 | U, H | Retrieval-hit gate in 10.1 and diagram but not in the FR. "Set from data" had no rule. | Three gates stated. Threshold = lowest value with ≥90% automatic precision, 0 unsafe. 90% confirmed 18 Nov. |
 | FR-12 | U | "Billing disputes" undefined. Injection and kill switch now Route rules too. | Intent list + dispute keyword list (OQ-06) + FR-17 list + FR-31. |
 | FR-13 | U, H, C | "Summary" source unknown: rule escalations have no model call. "Send" with no ticketing integration (Section 6). | Template summary when no call. Written to queue file + log. Field list. |
 | FR-14 | U, C | Diagram sent low-confidence tickets straight to escalate, so no draft could exist (contradicted 10.4). Security tickets would get drafts. | Draft only for below-threshold + passage. No draft for rule escalations. Draft goes through Validate. |
@@ -69,7 +69,7 @@ Figure 2 regenerated from `docs/architecture_flow.dot`.
 - 10.1 table, 10.2 kill-switch row, 10.3 Generate and Validate rows, 10.4 rows, 10.5 field list, 10.6 rate-limit pacing updated to match.
 - Other sections touched for consistency: Section 3 vague success signals, 4a mapping, A2 row, Section 6 two rows, AS-02, Section 8 cost row, OQ-18.
 
-## 4. Values I picked: confirm or change
+## 4. Values I picked: all confirmed 18 Nov
 - FR-11 automatic precision bar 90%.
 - FR-02 truncation 4,000 characters. FR-07 25 words. FR-13 summary 60 words.
 - FR-08 top 5 returned. FR-30 difflib 0.95 / 0.60. Section 6 drafts-as-is 70%.
@@ -79,11 +79,13 @@ Figure 2 regenerated from `docs/architecture_flow.dot`.
 
 ## 5. Biggest risk found
 - OpenRouter without credits: 50 free requests a day, 20 a minute. One 80-ticket run needs about 50–60. NFR-07 now caps a run at 40.
-- Decide before build day 4: Groq as primary, or response cache plus split runs. Record in AS-02 result.
+- Decided 18 Nov: one-time $10 OpenRouter credit, cap 1,000 a day (NFR-07, AS-02). Deviation from Build Spec §07 stated in the report.
+- Remaining risk: an assessor key without credit is capped at 50 a day; tickets past it degrade to escalation (FR-25). README must say so.
 
 ## 6. Follow-ups outside the PRD
 - DecisionLog_Design.md: "segment" field now joined at evaluation, not logged by the pipeline.
 - PRD_Requirements_Notes.md §1: counts now 34 FRs, Must 22 (FR-31 raised, FR-33 added), Should 7, Could 4, Will not 1.
 - `.env.example`: MODEL_NAME needs a `:free` id. `test.py` uses a different model.
 - `docs/architecture.md`: copy Figure 2 and 10.1.
+- Done 18 Nov: DecisionLog_Design segment row and PRD_Requirements_Notes counts updated.
 - Problem statement unchanged, so Stage 1 needs no sync.
