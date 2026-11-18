@@ -71,14 +71,14 @@ Legend: [ ] not done, [x] done (confirmed)
 
 ## Stage 4: Sprint plan (Week 2, Day 1) -> Workbooks/Stage_4_Sprint_Plan.docx
 (Do this alongside/just before Stage 3 spec work; it governs the build order.)
-- [ ] 4.1 Section 1: realistic capacity per week, other commitments, days off
-- [ ] 4.2 Section 2: backlog B-01...B-15 (+ your extras): hours, priority, dependencies, definition of done written BEFORE work starts
-- [ ] 4.3 Place retrieval layer and evaluation harness early; schedule the gate run (B-11) in week 2
-- [ ] 4.4 Section 3: week-2 day-by-day plan with hours and risks (align to Build Spec checkpoints)
-- [ ] 4.5 Section 4: week-3 day-by-day plan
-- [ ] 4.6 Section 5: cut-order list (what you drop first/second/third and what you will say in report)
-- [ ] 4.7 Start daily check-in record (finished / doing / blocked); keep updating each day
-- [ ] 4.8 Rule set: anything blocked more than 1 hour gets written down and escalated or worked around
+- [x] 4.1 Section 1: realistic capacity per week, other commitments, days off
+- [x] 4.2 Section 2: backlog B-01...B-15 (+ your extras): hours, priority, dependencies, definition of done written BEFORE work starts
+- [x] 4.3 Place retrieval layer and evaluation harness early; schedule the gate run (B-11) in week 2
+- [x] 4.4 Section 3: week-2 day-by-day plan with hours and risks (align to Build Spec checkpoints)
+- [x] 4.5 Section 4: week-3 day-by-day plan
+- [x] 4.6 Section 5: cut-order list (what you drop first/second/third and what you will say in report)
+- [x] 4.7 Start daily check-in record (finished / doing / blocked); keep updating each day
+- [x] 4.8 Rule set: anything blocked more than 1 hour gets written down and escalated or worked around
 
 ## Stage 5: Build, evaluate, revise (Week 2 into Week 3)
 Build checkpoints (Build Specification):
