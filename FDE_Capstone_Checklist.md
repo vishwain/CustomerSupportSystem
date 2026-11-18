@@ -59,15 +59,15 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 2.13 Week-1 milestone check: discovery + PRD v1 done; update Effort Log
 
 ## Stage 3: Prompt library and specifications (Week 2, Days 1-2) -> Workbooks/Stage_3_Prompt_Library.docx
-- [ ] 3.1 Section 1: specification for every FR (summary, inputs, outputs, acceptance criteria)
-- [ ] 3.2 Register prompts PR-01...: Specification / Build / Review / Evaluation categories
-- [ ] 3.3 For each prompt: purpose, serves requirement, version, model, inputs, output format, how you know it worked, weaknesses, change history, full text
-- [ ] 3.4 Build prompts: classification, answer drafting with citations, "I don't know" behaviour, structured parseable output
-- [ ] 3.5 Prompt-injection defence documented per build prompt (ticket text delimited from instructions)
-- [ ] 3.6 Run the Section 3 prompt-quality checklist on each build prompt
-- [ ] 3.7 Store prompts as versioned files in repo prompts/ plus prompts/README.md register
-- [ ] 3.8 Section 4 traceability table: FR -> spec -> prompts -> test case ID -> gaps
-- [ ] 3.9 Update Effort Log
+- [x] 3.1 Section 1: specification for every FR (summary, inputs, outputs, acceptance criteria)
+- [x] 3.2 Register prompts PR-01...: Specification / Build / Review / Evaluation categories
+- [x] 3.3 For each prompt: purpose, serves requirement, version, model, inputs, output format, how you know it worked, weaknesses, change history, full text
+- [x] 3.4 Build prompts: classification, answer drafting with citations, "I don't know" behaviour, structured parseable output
+- [x] 3.5 Prompt-injection defence documented per build prompt (ticket text delimited from instructions)
+- [x] 3.6 Run the Section 3 prompt-quality checklist on each build prompt
+- [x] 3.7 Store prompts as versioned files in repo prompts/ plus prompts/README.md register
+- [x] 3.8 Section 4 traceability table: FR -> spec -> prompts -> test case ID -> gaps
+- [x] 3.9 Update Effort Log
 
 ## Stage 4: Sprint plan (Week 2, Day 1) -> Workbooks/Stage_4_Sprint_Plan.docx
 (Do this alongside/just before Stage 3 spec work; it governs the build order.)
