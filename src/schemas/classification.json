@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "classification.json",
+  "title": "PR-02 classify output (FR-04). Same shape as the local classifier's output, so both can be logged and compared.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intent", "intent_confidence", "intent_alternatives", "urgency", "urgency_confidence", "urgency_alternatives"],
+  "$defs": {
+    "intent": {"enum": ["account_access", "api_key_issue", "api_usage_question", "authentication_failure", "billing_query", "compliance_request", "configuration_help", "data_export", "data_residency", "database_issue", "deployment_failure", "feature_request", "integration_help", "onboarding", "performance_degradation", "quota_or_overage", "rate_limit", "rollback_request", "security_incident", "sso_configuration", "unclear_request", "webhook_issue"]},
+    "urgency": {"enum": ["high", "medium", "low"]},
+    "conf": {"type": "number", "minimum": 0, "maximum": 1}
+  },
+  "properties": {
+    "intent": {"$ref": "#/$defs/intent"},
+    "intent_confidence": {"$ref": "#/$defs/conf"},
+    "intent_alternatives": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "object", "additionalProperties": false, "required": ["label", "confidence"], "properties": {"label": {"$ref": "#/$defs/intent"}, "confidence": {"$ref": "#/$defs/conf"}}}},
+    "urgency": {"$ref": "#/$defs/urgency"},
+    "urgency_confidence": {"$ref": "#/$defs/conf"},
+    "urgency_alternatives": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "object", "additionalProperties": false, "required": ["label", "confidence"], "properties": {"label": {"$ref": "#/$defs/urgency"}, "confidence": {"$ref": "#/$defs/conf"}}}}
+  }
+}

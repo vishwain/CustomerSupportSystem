@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "answer.json",
+  "title": "PR-03 generate output (FR-15)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["can_answer", "answer_sentences", "unsure_about", "escalation_summary", "restatement"],
+  "properties": {
+    "can_answer": {"type": "boolean"},
+    "answer_sentences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text", "passage_ids"],
+        "properties": {
+          "text": {"type": "string", "minLength": 1},
+          "passage_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^DOC-[A-Z]+-[0-9]{3}#(symptoms|common-causes|resolution|notes)$"}}
+        }
+      }
+    },
+    "unsure_about": {"type": "string"},
+    "escalation_summary": {"type": "string"},
+    "restatement": {"type": "string"}
+  },
+  "if": {"properties": {"can_answer": {"const": true}}},
+  "then": {"properties": {"answer_sentences": {"minItems": 1}}},
+  "else": {"properties": {"answer_sentences": {"maxItems": 0}}}
+}
