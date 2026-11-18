@@ -45,16 +45,16 @@ Legend: [ ] not done, [x] done (confirmed)
 
 ## Stage 2: Requirements, PRD v1.0 (Week 1, Days 4-5) -> Workbooks/Stage_2_PRD_Template.docx
 - [x] 2.1 Document control (version 1.0, author, date, status)
-- [ ] 2.2 Copy problem paragraph from Stage 1 (keep in sync)
-- [ ] 2.3 Define user groups (customers, tier 1, tier 2, head of support, others) with need / today / success signal
-- [ ] 2.4 Write functional requirements FR-01...: ID, statement, MoSCoW priority, discovery evidence ref (section/row), acceptance criteria
-- [ ] 2.5 Map FRs to the six components (Ingest, Classify, Retrieve, Route, Generate, Validate) plus guardrails/logging/monitoring; ensure A1-A12 are covered
-- [ ] 2.6 Write NFR-01...: latency, availability, accuracy, privacy, auditability, fairness, cost, with verification method
-- [ ] 2.7 Out-of-scope table (what, why, what would reconsider it)
-- [ ] 2.8 Assumptions table (why believed, what if false, how found out); this feeds Stage 5
-- [ ] 2.9 Success measures table (baseline, target, how measured, reported by)
-- [ ] 2.10 Open questions with owner and resolve-by date
-- [ ] 2.11 Architecture design + justification (adapt Brief architecture where discovery warrants); initial risk assessment
+- [x] 2.2 Copy problem paragraph from Stage 1 (keep in sync)
+- [x] 2.3 Define user groups (customers, tier 1, tier 2, head of support, others) with need / today / success signal
+- [x] 2.4 Write functional requirements FR-01...: ID, statement, MoSCoW priority, discovery evidence ref (section/row), acceptance criteria
+- [x] 2.5 Map FRs to the six components (Ingest, Classify, Retrieve, Route, Generate, Validate) plus guardrails/logging/monitoring; ensure A1-A12 are covered
+- [x] 2.6 Write NFR-01...: latency, availability, accuracy, privacy, auditability, fairness, cost, with verification method
+- [x] 2.7 Out-of-scope table (what, why, what would reconsider it)
+- [x] 2.8 Assumptions table (why believed, what if false, how found out); this feeds Stage 5
+- [x] 2.9 Success measures table (baseline, target, how measured, reported by)
+- [x] 2.10 Open questions with owner and resolve-by date
+- [x] 2.11 Architecture design + justification (adapt Brief architecture where discovery warrants); initial risk assessment
 - [ ] 2.12 Engineer-could-build-it review of every requirement (20 min check)
 - [ ] 2.13 Week-1 milestone check: discovery + PRD v1 done; update Effort Log
 
