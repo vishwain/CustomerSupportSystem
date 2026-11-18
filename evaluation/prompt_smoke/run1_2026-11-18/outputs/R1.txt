@@ -1,0 +1,1 @@
+{"can_answer": true, "answer_sentences": [{"text": "Open the webhooks page to see failed deliveries.", "passage_ids": ["DOC-API-003#resolution"]}], "unsure_about": "", "escalation_summary": "Webhooks stopped arriving.", "restatement": "Why did our webhooks stop arriving?"}

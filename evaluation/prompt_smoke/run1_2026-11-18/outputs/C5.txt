@@ -1,0 +1,1 @@
+{"intent": "webhook_issue", "intent_confidence": 0.88, "intent_alternatives": [{"label": "integration_help", "confidence": 0.05}, {"label": "unclear_request", "confidence": 0.02}], "urgency": "high", "urgency_confidence": 0.82, "urgency_alternatives": [{"label": "medium", "confidence": 0.15}, {"label": "low", "confidence": 0.02}]}

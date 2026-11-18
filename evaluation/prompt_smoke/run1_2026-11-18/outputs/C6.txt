@@ -1,0 +1,1 @@
+{"intent": "unclear_request", "intent_confidence": 0.60, "intent_alternatives": [{"label": "performance_degradation", "confidence": 0.10}, {"label": "deployment_failure", "confidence": 0.05}], "urgency": "medium", "urgency_confidence": 0.45, "urgency_alternatives": [{"label": "high", "confidence": 0.35}, {"label": "low", "confidence": 0.10}]}

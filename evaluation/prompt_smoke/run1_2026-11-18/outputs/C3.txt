@@ -1,0 +1,1 @@
+{"intent": "security_incident", "intent_confidence": 0.85, "intent_alternatives": [{"label": "api_key_issue", "confidence": 0.08}, {"label": "authentication_failure", "confidence": 0.03}], "urgency": "high", "urgency_confidence": 0.88, "urgency_alternatives": [{"label": "medium", "confidence": 0.07}, {"label": "low", "confidence": 0.02}]}

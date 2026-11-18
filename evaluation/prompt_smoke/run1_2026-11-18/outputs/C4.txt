@@ -1,0 +1,1 @@
+{"intent": "data_residency", "intent_confidence": 0.80, "intent_alternatives": [{"label": "compliance_request", "confidence": 0.12}, {"label": "unclear_request", "confidence": 0.02}], "urgency": "low", "urgency_confidence": 0.85, "urgency_alternatives": [{"label": "medium", "confidence": 0.10}, {"label": "high", "confidence": 0.02}]}
