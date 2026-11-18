@@ -44,7 +44,7 @@ Legend: [ ] not done, [x] done (confirmed)
 - [x] 1.17 Update Effort Log
 
 ## Stage 2: Requirements, PRD v1.0 (Week 1, Days 4-5) -> Workbooks/Stage_2_PRD_Template.docx
-- [ ] 2.1 Document control (version 1.0, author, date, status)
+- [x] 2.1 Document control (version 1.0, author, date, status)
 - [ ] 2.2 Copy problem paragraph from Stage 1 (keep in sync)
 - [ ] 2.3 Define user groups (customers, tier 1, tier 2, head of support, others) with need / today / success signal
 - [ ] 2.4 Write functional requirements FR-01...: ID, statement, MoSCoW priority, discovery evidence ref (section/row), acceptance criteria
