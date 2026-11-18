@@ -1,0 +1,33 @@
+// PRD Figure 2: one ticket from arrival to a sent reply or an escalation.
+// Render: dot -Tpng -Gdpi=200 docs/architecture_flow.dot -o Observations/architecture_flow.png
+digraph flow {
+  graph [rankdir=TB, nodesep=0.45, ranksep=0.42, fontname="DejaVu Sans", bgcolor="white", pad=0.2];
+  node  [shape=box, style="rounded,filled", fillcolor="#F3F3F6", color="#1B1B2B", fontname="DejaVu Sans", fontsize=12, margin="0.18,0.08", penwidth=1.2];
+  edge  [color="#1B1B2B", fontname="DejaVu Sans", fontsize=10, arrowsize=0.7, penwidth=1.1];
+
+  src      [label="Ticket records (JSON): email · chat · docs_comment · forum\nharness --input file (FR-26)  or  POST /tickets (FR-33)", fillcolor="white"];
+  ingest   [label="1  Ingest\nOne record: ticket_id, channel, subject, body, received_at + cleaned text\nName and id held aside for Validate only. No tier, region, fluency, labels, history (FR-01–03)"];
+  classify [label="2  Classify  (local, no model call)\nIntent (22) + urgency (3), calibrated confidence, two alternatives each (FR-04, 05)"];
+  retrieve [label="3  Retrieve  (local)\nUp to 5 section passages from 29 articles, scores, relevance cutoff (FR-08, 09)"];
+  route    [label="4  Route  (deterministic)\nRules first: kill switch · instruction-integrity list · must-escalate intents · billing dispute\n→ confidence threshold → retrieval hit  (FR-11, 12, 17, 31)"];
+  generate [label="5  Generate  (1 model call)\nFixed JSON: cited sentences, can_answer, unsure_about, summary, restatement\nAnswer mode, or draft mode for the agent (FR-07, 14, 15, 16)"];
+  validate [label="6  Validate  (every reply and draft)\nPrivate data · citation set · grounding · commitments · schema / prompt leak (FR-17, 22, 23)"];
+  send     [label="Send automatic reply\nlabelled automated, sources listed (FR-18)", fillcolor="#FDE7D9", color="#D9661F"];
+  esc      [label="Escalate with package → escalation_queue.csv\nsummary, intent, urgency, passages, reason, unsure_about,\ncited draft if it passed Validate (FR-06, 13, 14)\nFixed holding message to customer (FR-16)", fillcolor="#FDE7D9", color="#D9661F"];
+  log      [label="Decision log (SQLite) · every stage writes a row, final row before any action, fail closed (FR-24)\nMetrics report (FR-27) and /metrics (FR-34) read from it", shape=box, style="filled", fillcolor="#1B1B2B", fontcolor="white", color="#1B1B2B"];
+
+  src -> ingest;
+  ingest -> classify  [label="  body present"];
+  ingest -> esc       [label="empty / unreadable\n(FR-02)", constraint=false, style=dashed];
+  classify -> retrieve;
+  retrieve -> route;
+  route -> generate   [label="  eligible: answer mode\n  below threshold + passage: draft mode"];
+  route -> esc        [label="rule fired / no passage\n(no model call)"];
+  generate -> validate;
+  generate -> esc     [label="can_answer = false"];
+  validate -> send    [label="pass (answer)"];
+  validate -> esc     [label="pass (draft) / block"];
+  send -> log [style=dashed, arrowhead=none, color="#888888"];
+  esc  -> log [style=dashed, arrowhead=none, color="#888888"];
+  {rank=same; send; esc}
+}
