@@ -95,6 +95,7 @@ All commands run from the repo root with the virtual environment active.
 | Compare answer prompts PR-03 v1.0 and v2.0 on the dev hold-out; writes `config/generation.json` (5.8) | `python docs/generate_eval.py --write-config` |
 | Grounding floor for Validate, plus guardrail false-positive check; writes `config/guardrails.json` (5.9) | `python docs/grounding_floor.py --write-config` |
 | Guardrail demo: every guard fires on crafted outputs, no model call (A7, video) | `python docs/guardrail_demo.py` |
+| Must-not-auto-respond check: every risky class escalates; sets the alternative-guard floor (5.10) | `python docs/must_escalate_check.py --write-config` |
 | Engineered tickets through the full pipeline (A7) | `python -m evaluation.harness --input tests/fixtures/engineered_tickets.json --output evaluation/results/<run-folder>` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
@@ -117,7 +118,10 @@ private data (including every customer name and id in the run), citations, groun
 (floor in `config/guardrails.json`, set from data), instruction integrity (ticket and output), commitments
 (refunds, fixes, dates) and the confidence floor. A block escalates the ticket, drops the draft and logs the
 reason; only an answer that passes is sent (final action `auto_respond`). Without the grounding floor every
-answer is blocked (fail closed). Customer-facing text is in `config/messages.json`; the PR-03 version in
+answer is blocked (fail closed). Route escalates must-not-auto-respond tickets before any confidence check, on
+four independent checks: predicted intent, dispute wording (any intent), security/legal/residency wording (any
+intent) and the calibrated probability of the risky classes (floor set from data). Each escalation carries a
+summary, the opening of the ticket and the retrieved sources. Customer-facing text is in `config/messages.json`; the PR-03 version in
 `config/generation.json`. `--limit 20` runs the first 20 tickets; `--no-models` skips the embedding model;
 `--no-llm` skips all provider calls.
 
