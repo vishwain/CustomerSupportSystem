@@ -1,0 +1,25 @@
+{
+  "run_id": "20261119T131934Z_validation_tickets_03e1",
+  "tickets_processed": 15,
+  "distinct_ticket_ids": 15,
+  "final_rows": 15,
+  "final_actions": {
+    "escalate": 15
+  },
+  "rows_by_stage": {
+    "classification": 15,
+    "final": 15,
+    "generation": 9,
+    "ingest": 15,
+    "retrieval": 15,
+    "routing": 15
+  },
+  "rows_total": 84,
+  "missing_final": [],
+  "missing_final_count": 0,
+  "unexpected_final": [],
+  "duplicate_final": 0,
+  "rows_with_empty_required_field": 0,
+  "fallback_rows": 0,
+  "ok": true
+}

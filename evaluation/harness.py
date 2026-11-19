@@ -4,10 +4,11 @@ One command, any ticket file, no hardcoded filename or ticket count:
 
     python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>
 
-Per ticket: Ingest -> Route pre-rules -> Classify -> Retrieve -> Route -> (Generate, Validate: not built)
--> final decision row (written BEFORE the action) -> result line. Every stage writes its own row.
-Until Generate exists the final action is always escalate; the routing row and results.jsonl show what
-Route decided (auto_respond, draft_for_review or escalate) and why.
+Per ticket: Ingest -> Route pre-rules -> Classify -> Retrieve -> Route -> Generate (PR-03, only when Route
+chose auto_respond or draft_for_review) -> (Validate: 5.9, not built) -> final decision row (written BEFORE the
+action) -> result line. Every stage writes its own row.
+Until Validate exists nothing is sent: an answer that passes the citation check is held for an agent with
+would_send = true in results.jsonl, so the end-to-end FR-11 precision can be measured now.
 
 Needs config/retrieval.json (docs/retrieval_experiment.py) and, for automatic answers, config/routing.json
 (docs/routing_threshold.py). Without routing.json nothing is auto-answered. --no-models skips the
@@ -43,12 +44,14 @@ from typing import Any
 
 from src import pii
 from src.classify import Classification, Classifier, build_classifier, fallback, log_classification
+from src.generate import GenerationResult, Generator, compose_reply, load_messages, log_generation
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
 from src.retrieve import RetrievalResult, Retriever, SentenceTransformerEmbedder, build_retriever, log_retrieval
 from src.route import RouteDecision, Router, log_routing
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
-HARNESS_VERSION = "harness-0.3-route"
+HARNESS_VERSION = "harness-0.4-generate"
+VALIDATE_BUILT = False  # 5.9 sets this: only then can a checked answer be sent
 EXTRACT_ROWS = 20
 
 
@@ -64,6 +67,8 @@ class Outcome:
     rule_fired: str = "none"
     degraded_mode: bool = False
     placeholder: bool = False
+    generation: dict[str, Any] = field(default_factory=dict)
+    customer_message: str = ""
     route_action: str = "none"
     intent: str = "unknown"
     intent_confidence: float = 0.0
@@ -77,23 +82,31 @@ class Components:
     retriever: Retriever | None = None
     classifier: Classifier | None = None
     router: Router | None = None
+    generator: Generator | None = None
+    messages: dict[str, str] | None = None
 
 
 def escalation_package(record: TicketRecord, cls: Classification, res: RetrievalResult | None,
-                       decision: RouteDecision) -> dict[str, Any]:
-    """FR-13 fields for an escalation with no model call: template summary, subject as restatement."""
+                       decision: RouteDecision, gen: GenerationResult | None = None, draft: str = "",
+                       reason: str | None = None) -> dict[str, Any]:
+    """FR-13. Without a model call: template summary, subject as restatement, route reason as unsure_about.
+    With one: summary, restatement and unsure_about come from the PR-03 JSON; draft only if it passed checks."""
     subject = (record.subject or "").strip() or "(no subject)"
     passages = ([{"passage_id": p.passage_id, "doc_id": p.doc_id, "title": p.title, "score": p.score,
                   "reviewed": p.reviewed_label} for p in res.passages] if res and res.passages else "none found")
+    template = f"{cls.intent} ({cls.intent_confidence:.2f}), {cls.urgency} urgency, {record.channel}: {subject}"
+    why = reason or decision.reason
+    model_ok = gen is not None and gen.error in ("none", "citation")
     return {
         "ticket_id": record.ticket_id,
-        "summary": f"{cls.intent} ({cls.intent_confidence:.2f}), {cls.urgency} urgency, {record.channel}: {subject}",
-        "restatement": subject,
+        "summary": (gen.escalation_summary if model_ok and gen.escalation_summary else template),
+        "restatement": (gen.restatement if model_ok and gen.restatement else subject),
         "intent": cls.intent, "intent_confidence": cls.intent_confidence,
         "alternatives": cls.intent_alternatives,
         "urgency": cls.urgency, "received_at": record.received_at,
         "passages": passages,
-        "reason": decision.reason, "unsure_about": decision.reason, "draft": "",
+        "reason": why, "unsure_about": (gen.unsure_about if model_ok and gen.unsure_about else why),
+        "draft": draft,
         "route_action": decision.action, "rule_fired": decision.rule_fired,
     }
 
@@ -123,18 +136,48 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
     decision = router.decide(record.text, cls, res)
     log_routing(log, record.ticket_id, record.text, decision, cls, router.cfg)
 
+    messages = comp.messages or load_messages()
+    gen: GenerationResult | None = None
+    if decision.action in ("auto_respond", "draft_for_review") and comp.generator is not None and res and res.passages:
+        gen = comp.generator.generate(record, cls.intent, res.for_generation,
+                                      "answer" if decision.action == "auto_respond" else "draft")
+        log_generation(log, record.ticket_id, record.text, gen, res.for_generation)
+
+    draft, would_send, error, rule = "", False, (cls.error if cls.failed else "none"), decision.rule_fired
     if decision.action == "escalate":
         reason = decision.reason
-    elif decision.action == "draft_for_review":
-        reason = f"Route: draft_for_review ({decision.reason}). Generate not built yet, so no draft; escalated."
+    elif gen is None:
+        reason = f"Route: {decision.action} ({decision.reason}). Generate unavailable (no provider config); escalated."
+    elif gen.error in ("timeout", "rate_limit", "provider_down"):
+        reason, error = f"Generate failed: {gen.reason}", gen.error
+    elif gen.error in ("bad_output", "citation"):
+        reason, error = f"Generate output rejected: {gen.reason}; escalated, nothing sent.", "bad_output"
+        rule = "citation_check" if gen.error == "citation" else "bad_output"
+    elif not gen.can_answer:
+        reason, rule = f"Model cannot answer from the passages (FR-16): {gen.unsure_about or gen.reason}", "cannot_answer"
     else:
-        reason = f"Route: auto_respond ({decision.reason}). Generate not built yet, so escalated."
+        draft = compose_reply(gen, res.for_generation, messages)
+        if gen.mode == "draft":
+            reason = (f"Draft for an agent (FR-14): {decision.reason}. Citations checked. Validate (5.9) "
+                      "not built yet.")
+        else:
+            would_send = True
+            reason = ("Answer passed the citation check, but Validate (5.9: private data, grounding, commitments) "
+                      "is not built, so it is held for an agent.")
+    action = "auto_respond" if (would_send and VALIDATE_BUILT) else "escalate"
+    gen_info = {} if gen is None else {
+        "gen_action": gen.action, "mode": gen.mode, "can_answer": gen.can_answer, "citations_ok": gen.citations_ok,
+        "cited": gen.cited, "unresolved": gen.unresolved, "would_send": would_send, "draft": draft,
+        "requests": gen.requests, "prompt_version": gen.prompt_version}
     return Outcome(
-        action="escalate", reason=reason, error=cls.error if cls.failed else "none",
-        escalation_package=escalation_package(record, cls, res, decision),
-        rule_fired=decision.rule_fired, degraded_mode=cls.degraded, placeholder=decision.action != "escalate",
+        action=action, reason=reason, error=error,
+        reply=draft if action == "auto_respond" else None,
+        escalation_package=escalation_package(record, cls, res, decision, gen, draft, reason),
+        rule_fired=rule, degraded_mode=cls.degraded or bool(gen and gen.degraded),
+        placeholder=would_send and not VALIDATE_BUILT,
         route_action=decision.action, intent=cls.intent, intent_confidence=cls.intent_confidence,
-        urgency=cls.urgency,
+        urgency=cls.urgency, generation=gen_info,
+        customer_message=draft if action == "auto_respond" else messages["holding_message"],
     )
 
 
@@ -205,6 +248,8 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         "placeholder": outcome.placeholder,
         "ingest_flags": record.flags,
         "escalation_package": outcome.escalation_package if outcome.action == "escalate" else {},
+        "generation": outcome.generation,
+        "customer_message": outcome.customer_message,
     }
 
 
@@ -302,7 +347,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--quiet", action="store_true", help="no per-ticket lines")
     ap.add_argument("--no-models", action="store_true",
                     help="skip the embedding model (classifier, retriever): fast plumbing runs and tests")
-    ap.add_argument("--no-llm", action="store_true", help="disable the PR-02 classifier fallback")
+    ap.add_argument("--no-llm", action="store_true", help="no provider calls: no Generate, no PR-02 fallback")
     ap.add_argument("--limit", type=int, default=0, help="process only the first N tickets (0 = all)")
     ap.add_argument("--retrieval-config", default="config/retrieval.json")
     ap.add_argument("--routing-config", default="config/routing.json")
@@ -336,6 +381,17 @@ def main(argv: list[str] | None = None) -> int:
     from src.route import RoutingConfig
     comp = Components(router=Router(RoutingConfig.load(a.routing_config)))
     print(f"routing: threshold {comp.router.cfg.threshold} from {comp.router.cfg.source}")
+    comp.messages = load_messages()
+    llm_client = None
+    if not a.no_llm:
+        try:
+            from src.llm import client_from_env
+            llm_client = client_from_env()
+            comp.generator = Generator(llm_client)
+            print(f"generate: {comp.generator.prompt.version} on {llm_client.model}")
+        except Exception as e:  # noqa: BLE001 - no key or paid model id: run continues, nothing generated
+            print(f"WARNING: Generate unavailable ({type(e).__name__}: {e}); auto/draft tickets escalate",
+                  file=sys.stderr)
     if not a.no_models:
         try:
             emb = SentenceTransformerEmbedder()
@@ -344,7 +400,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"WARNING: embedding model unavailable ({type(e).__name__}: {e})", file=sys.stderr)
         if emb is not None:
             try:
-                comp.classifier = build_classifier(emb, use_llm_fallback=not a.no_llm)
+                comp.classifier = build_classifier(emb, use_llm_fallback=llm_client is not None, llm_client=llm_client)
                 print(f"classifier: {comp.classifier.local.name} {comp.classifier.local.version}"
                       f"{' + PR-02 fallback' if comp.classifier.llm else ''}")
             except Exception as e:  # noqa: BLE001 - every ticket then escalates as classification_failed
@@ -364,8 +420,10 @@ def main(argv: list[str] | None = None) -> int:
         r = process_ticket(rec, log, comp)
         results.append(r)
         if not a.quiet:
+            g = r["generation"]
+            gtxt = (f" gen={g['gen_action']}{' SEND-READY' if g['would_send'] else ''}" if g else "")
             print(f"  {r['ticket_id']:<12} {r['channel']:<13} {r['intent']:<24} {r['intent_confidence']:.2f}  "
-                  f"route={r['route_action']:<16} final={r['action']:<9} {r['rule_fired']}")
+                  f"route={r['route_action']:<16}{gtxt:<28} final={r['action']:<9} {r['rule_fired']}")
 
     ticket_ids = [r.ticket_id for r in records]
     reconcile = log.reconcile(ticket_ids)
@@ -396,7 +454,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{status}: {reconcile['final_rows']} final rows for {len(records)} tickets; "
           f"actions {reconcile['final_actions']}; rows by stage {reconcile['rows_by_stage']}; "
           f"empty required fields {reconcile['rows_with_empty_required_field']}.")
-    print(f"route decisions {dict(Counter(r['route_action'] for r in results))}; {n_queue} rows in escalation_queue.csv")
+    gens = [r["generation"] for r in results if r["generation"]]
+    print(f"route decisions {dict(Counter(r['route_action'] for r in results))}; generation "
+          f"{dict(Counter(g['gen_action'] for g in gens))}; send-ready {sum(g['would_send'] for g in gens)}; "
+          f"{n_queue} rows in escalation_queue.csv")
+    if gens:
+        print(f"read the answers: python -m evaluation.show_answers --run-dir {out_dir}")
     print(f"outputs in {out_dir}; decision log at {db_path}")
     print(f"read the log: python -m evaluation.show_log --run-dir {out_dir}")
     return 0 if reconcile["ok"] else 1

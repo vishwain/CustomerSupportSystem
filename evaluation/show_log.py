@@ -24,6 +24,10 @@ def _short(row: sqlite3.Row) -> str:
         alts = json.loads(row["alternatives"] or "[]")
         extra = (f" intent={pred.get('intent')} urgency={pred.get('urgency')} via {pred.get('source')} "
                  f"alts={[(a['value'], a['confidence']) for a in alts]}")
+    elif stage == "generation":
+        src = json.loads(row["sources_used"] or "[]")
+        extra = (f" mode={pred.get('mode')} can_answer={pred.get('can_answer')} citations_ok={pred.get('citations_ok')}"
+                 f" cited={[s['passage_id'] for s in src]} prompt={row['prompt_version']} requests={row['requests']}")
     elif stage == "retrieval":
         src = json.loads(row["sources_used"] or "[]")
         extra = f" passages={[(s['passage_id'], s['score']) for s in src]}"
