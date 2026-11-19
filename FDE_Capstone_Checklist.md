@@ -97,7 +97,7 @@ Build checkpoints (Build Specification):
 - [x] 5.13 Metrics report auto-generated: volume, business, technical, governance figures (A10)
 - [x] 5.14 Tests runnable with a single documented command and passing (A12)
 - [x] 5.15 FastAPI interface (src/api.py) working
-- [ ] 5.16 README written and verified: fresh clone on another machine/dir follows steps to running (A1); .env.example complete
+- [x] 5.16 README written and verified: fresh clone on another machine/dir follows steps to running (A1); .env.example complete
 - [ ] 5.17 Validation-set evaluation (80 tickets); record business + technical results honestly
 - [ ] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
 - [ ] 5.19 Hidden/final evaluation run: ONCE only; record date and number of runs (see clarifications)
