@@ -75,7 +75,8 @@ cp .env.example .env
 `.env` holds your secret key. It is git-ignored: never commit it.
 
 Thresholds are not environment variables. They are set from data and committed with their date:
-`config/retrieval.json` (relevance cutoff) and `config/routing.json` (routing threshold).
+`config/retrieval.json` (relevance cutoff), `config/routing.json` (routing threshold, from the calibration table)
+and `config/calibration.json` (confidence temperature, used only if the calibration run adopted it).
 `config/runtime.json` holds the kill switch: set `"automation_paused": true` and the next ticket escalates (FR-31).
 
 
@@ -89,7 +90,8 @@ All commands run from the repo root with the virtual environment active.
 | Ingest proof: one ticket per channel, normalised (A2) | `python -m src.ingest --input data/development_tickets.json` |
 | Retrieval experiment: compare chunking, pick cutoff, write `config/retrieval.json` (A4) | `python docs/retrieval_experiment.py --write-config` |
 | Train the local classifier (also happens automatically on first use) (A3) | `python -m src.classify` |
-| Routing threshold study: write `config/routing.json` (A5) | `python docs/routing_threshold.py --write-config` |
+| Routing study at Route level (FR-11 view, 5.6) | `python docs/routing_threshold.py` |
+| Calibration table and routing threshold: writes `evaluation/results/<date>_calibration/`, `config/routing.json`, `config/calibration.json` (5.7) | `python docs/calibration.py --write-config` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
 The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
