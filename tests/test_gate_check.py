@@ -50,3 +50,14 @@ def test_gate_fails_when_a_final_row_is_missing(tmp_path):
     assert gate_check.main(["--run-dir", str(out)]) == 1
     r = json.loads((out / "gate_check.json").read_text(encoding="utf-8"))
     assert victims[0] in r["checks"]["tickets_without_final"]
+
+
+def test_limited_run_is_checked_against_the_tickets_it_processed(tmp_path):
+    out = tmp_path / "lim"
+    assert harness.main(["--input", "data/validation_tickets.json", "--output", str(out), "--limit", "10",
+                         "--storage", str(tmp_path / "s"), "--quiet", "--no-models", "--no-llm"]) == 0
+    assert gate_check.main(["--run-dir", str(out)]) == 0
+    r = json.loads((out / "gate_check.json").read_text(encoding="utf-8"))
+    assert r["checks"]["records_in_file"] == r["checks"]["final_rows_in_log"] == 10
+    m = json.loads((out / "metrics_report.json").read_text(encoding="utf-8"))
+    assert m["volume"]["processed"] == 10 and m["governance"]["decision_log_coverage_ok"]

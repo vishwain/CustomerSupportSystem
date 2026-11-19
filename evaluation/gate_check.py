@@ -58,8 +58,12 @@ def labels_by_id(input_path: Path) -> dict[str, dict[str, Any]]:
 def check(run: dict[str, Any], compare: dict[str, Any] | None = None) -> dict[str, Any]:
     info, results, rows = run["info"], run["results"], run["rows"]
     input_path = Path(info["input_path"])
+    # --limit N processes the first N records: the run is checked against those, not the whole file
+    n_run = int(info.get("tickets_in") or 0) or None
     raw_count = sum(1 for _ in iter_raw(input_path))
-    labels = labels_by_id(input_path)
+    if n_run is not None:
+        raw_count = min(raw_count, n_run)
+    labels = dict(list(labels_by_id(input_path).items())[:raw_count])
     ids_in = list(labels)
 
     finals = [r for r in rows if r[1] == "final"]

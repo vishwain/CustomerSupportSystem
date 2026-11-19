@@ -226,6 +226,9 @@ def build_report(rows: list[dict[str, Any]], run_info: dict[str, Any],
                  results: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     input_path = Path(run_info["input_path"])
     raw_by_id = input_join(input_path)
+    n_run = int(run_info.get("tickets_in") or 0)
+    if n_run and n_run < len(raw_by_id):  # --limit N: the run covers the first N records only
+        raw_by_id = dict(list(raw_by_id.items())[:n_run])
     st_by = by_ticket(rows)
     fs = [ticket_facts(tid, st_by.get(tid, {}), raw) for tid, raw in raw_by_id.items()]
     labelled = any(f["has_labels"] for f in fs)
