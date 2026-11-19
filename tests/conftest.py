@@ -29,3 +29,25 @@ class FakeEmbedder:
 @pytest.fixture
 def fake_embedder():
     return FakeEmbedder()
+
+
+@pytest.fixture(autouse=True)
+def offline(monkeypatch):
+    """Every test runs without API keys or network (A12). A real provider call or a model download fails
+    the test loudly instead of happening. A real key in .env is never used: python-dotenv does not
+    override a variable that is already set."""
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key-not-real")
+    monkeypatch.setenv("LLM_CACHE", "0")
+    monkeypatch.setenv("HF_HUB_OFFLINE", "1")
+    monkeypatch.setenv("TRANSFORMERS_OFFLINE", "1")
+
+    def no_provider(*a, **k):
+        raise RuntimeError("a test tried to build a real provider client; use a scripted transport")
+
+    def no_model(self, *a, **k):
+        raise RuntimeError("a test tried to load the real embedding model; use FakeEmbedder")
+
+    import src.llm
+    import src.retrieve
+    monkeypatch.setattr(src.llm, "openai_transport", no_provider)
+    monkeypatch.setattr(src.retrieve.SentenceTransformerEmbedder, "__init__", no_model)
