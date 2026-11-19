@@ -7,7 +7,11 @@
   if none clear it, the result is empty and Route escalates (FR-09, FR-11).
 - The chunking config and cutoff come from config/retrieval.json, written by
   docs/retrieval_experiment.py from measured data. Nothing here is a guessed default.
-- No fluency, tier or region field is read (FR-19); only the cleaned ticket text is the query.
+- No fluency, tier or region field is read (FR-19). The query is the cleaned ticket text, with the predicted
+  intent's description in front for tickets without a subject (query_mode in config/retrieval.json).
+
+Ingest the knowledge base (builds the Chroma store; downloads the embedding model on first use):
+    python -m src.retrieve --build
 """
 
 from __future__ import annotations
@@ -375,3 +379,32 @@ def log_retrieval(log, ticket_id: str, text: str, retriever: Retriever, result: 
         error="none" if result.hit else "no_retrieval_hit",
         latency_ms=latency_ms,
     )
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Build (or verify) the Chroma store from data/documentation.json with the configured chunking."""
+    import argparse
+    import sys
+
+    ap = argparse.ArgumentParser(description="Ingest the knowledge base into the Chroma store (A4).")
+    ap.add_argument("--build", action="store_true", help="build the store, or verify it is current")
+    ap.add_argument("--config", default=str(DEFAULT_CONFIG))
+    ap.add_argument("--query", default="Every API call returns 429 since this morning.",
+                    help="a test query to show the store answers")
+    a = ap.parse_args(argv)
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    rc = load_config(a.config)
+    path = os.getenv("CHROMA_PATH", "./storage/chroma")
+    r = build_retriever(a.config)
+    docs = {p.doc_id for p in r.passages}
+    print(f"Chroma store at {path}: {len(r.passages)} passages from {len(docs)} articles "
+          f"({rc.chunking} chunking, model {r.embedder.name}).")
+    res = r.retrieve(r.query_for(a.query, "", None)[0])
+    print(f"test query: {a.query!r} -> " + (", ".join(f"{p.passage_id} {p.score:.2f}" for p in res.passages[:3])
+                                            or "no passage above the cutoff"))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
