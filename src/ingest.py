@@ -30,6 +30,7 @@ INGEST_VERSION = "ingest-1.0"
 CHANNELS = ("email", "chat", "docs_comment", "forum")
 MAX_TEXT_CHARS = 4000  # FR-02
 MALFORMED = "malformed_input"
+UNREADABLE_SHARE = 0.3  # body more than 30% U+FFFD (undecodable bytes) = unreadable, escalate
 
 # Fields that must never pass ingest (FR-03). Kept here so a test can assert it.
 DROPPED_FIELDS = ("customer_tier", "customer_region", "language_fluency", "labels", "history")
@@ -171,10 +172,17 @@ def normalise(raw: Any, position: int) -> TicketRecord:
         flags["non_ascii"] = True  # kept, not an error (FR-02)
 
     ingest_error, reason = None, "accepted"
+    bad = body_clean.count("\ufffd")
+    if bad:
+        flags["replacement_chars"] = True  # bytes that could not be decoded
+    visible = len("".join(body_clean.split()))
     if not body_clean.strip():
         ingest_error = MALFORMED
         reason = "empty or whitespace-only body"
         flags["empty_body"] = True
+    elif visible and bad / visible > UNREADABLE_SHARE:
+        ingest_error = MALFORMED
+        reason = f"unreadable body: {bad} of {visible} characters could not be decoded"
 
     held = {k: _as_str(raw.get(k)) for k in HELD_FIELDS if raw.get(k) not in (None, "")}
 
@@ -204,16 +212,29 @@ class InputFileError(Exception):
     """The whole input file is unreadable (missing, not JSON, not a list). Nothing can be processed."""
 
 
+def read_text_any(p: Path) -> tuple[str, str]:
+    """Decode a ticket file without failing the run on an odd encoding. Returns (text, how).
+    UTF-8 (with or without BOM) and UTF-16 with a BOM decode as is. Anything else decodes as UTF-8 with
+    bad bytes replaced by U+FFFD; normalise() then flags those records, or escalates them if unreadable."""
+    try:
+        raw = p.read_bytes()
+    except OSError as e:
+        raise InputFileError(f"cannot read {p}: {e}") from e
+    if raw[:2] in (b"\xff\xfe", b"\xfe\xff"):
+        return raw.decode("utf-16"), "utf-16"
+    try:
+        return raw.decode("utf-8-sig"), "utf-8"
+    except UnicodeDecodeError:
+        return raw.decode("utf-8", errors="replace"), "utf-8 with replacements"
+
+
 def iter_raw(path: str | Path) -> Iterator[tuple[int, Any]]:
     """Yield (position, raw) from a .json array or a .jsonl file.
 
     A bad line in .jsonl yields a malformed marker so processing continues (FR-02).
     """
     p = Path(path)
-    try:
-        content = p.read_text(encoding="utf-8-sig")
-    except (OSError, UnicodeDecodeError) as e:
-        raise InputFileError(f"cannot read {p}: {e}") from e
+    content, _ = read_text_any(p)
 
     if p.suffix.lower() == ".jsonl":
         for i, line in enumerate(x for x in content.splitlines() if x.strip()):

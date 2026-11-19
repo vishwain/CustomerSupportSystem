@@ -170,7 +170,8 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
     elif gen is None:
         reason = f"Route: {decision.action} ({decision.reason}). Generate unavailable (no provider config); escalated."
     elif gen.error in ("timeout", "rate_limit", "provider_down"):
-        reason, error = f"Generate failed: {gen.reason}", gen.error
+        reason, error = f"Generate: {gen.reason}", gen.error
+        rule = {"timeout": "provider_timeout", "rate_limit": "provider_rate_limit"}.get(gen.error, "provider_down")
     elif gen.error in ("bad_output", "citation"):
         reason, error = f"Generate output rejected: {gen.reason}; escalated, nothing sent.", "bad_output"
         rule = "citation_check" if gen.error == "citation" else "bad_output"
@@ -208,7 +209,7 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
         "gen_action": gen.action, "mode": gen.mode, "can_answer": gen.can_answer, "citations_ok": gen.citations_ok,
         "cited": gen.cited, "unresolved": gen.unresolved, "would_send": would_send, "validated": validated,
         "draft": draft,
-        "requests": gen.requests, "prompt_version": gen.prompt_version}
+        "requests": gen.requests, "cached": gen.cached, "prompt_version": gen.prompt_version}
     return Outcome(
         action=action, reason=reason, error=error,
         reply=draft if action == "auto_respond" else None,
@@ -283,6 +284,7 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         "reason": outcome.reason,
         "error": outcome.error,
         "rule_fired": outcome.rule_fired,
+        "degraded_mode": outcome.degraded_mode,
         "reply": outcome.reply if (outcome.action == "auto_respond" and log_written) else None,
         "latency_ms": latency_ms,
         "log_written": log_written,
@@ -316,6 +318,9 @@ def skeleton_metrics(results: list[dict[str, Any]], rec: dict[str, Any], run: di
         "by_action": dict(Counter(r["action"] for r in results)),
         "by_route_action": dict(Counter(r["route_action"] for r in results)),
         "by_error": dict(Counter(r["error"] for r in results)),
+        "provider_requests": sum((r.get("generation") or {}).get("requests", 0) for r in results),
+        "generation_cache_hits": sum(bool((r.get("generation") or {}).get("cached")) for r in results),
+        "degraded_mode_tickets": sum(bool(r.get("degraded_mode")) for r in results),
         "latency_ms_p50": pct(0.50),
         "latency_ms_p95": pct(0.95),
         "decision_log_coverage_ok": rec["ok"],
@@ -328,7 +333,8 @@ def metrics_markdown(m: dict[str, Any]) -> str:
     lines = [f"# Metrics report: {m['run_id']}", "",
              f"Input: `{m['input']}`. Finished {m['run_date_utc']}. Runs on this input so far: {m['runs_on_this_input']}.",
              "", "| Figure | Value |", "| --- | --- |"]
-    for k in ("tickets_in", "final_rows", "decision_log_coverage_ok", "latency_ms_p50", "latency_ms_p95"):
+    for k in ("tickets_in", "final_rows", "decision_log_coverage_ok", "provider_requests", "generation_cache_hits",
+              "degraded_mode_tickets", "latency_ms_p50", "latency_ms_p95"):
         lines.append(f"| {k} | {m[k]} |")
     for group in ("by_channel", "by_action", "by_route_action", "by_error"):
         for k, v in sorted(m[group].items()):
@@ -389,6 +395,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-models", action="store_true",
                     help="skip the embedding model (classifier, retriever): fast plumbing runs and tests")
     ap.add_argument("--no-llm", action="store_true", help="no provider calls: no Generate, no PR-02 fallback")
+    ap.add_argument("--no-cache", action="store_true",
+                    help="do not read or write the provider cache (use when forcing provider failures)")
     ap.add_argument("--limit", type=int, default=0, help="process only the first N tickets (0 = all)")
     ap.add_argument("--retrieval-config", default="config/retrieval.json")
     ap.add_argument("--routing-config", default="config/routing.json")
@@ -424,6 +432,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"routing: threshold {comp.router.cfg.threshold} from {comp.router.cfg.source}")
     comp.messages = load_messages()
     llm_client = None
+    if a.no_cache:
+        os.environ["LLM_CACHE"] = "0"
     if not a.no_llm:
         try:
             from src.llm import client_from_env

@@ -259,3 +259,10 @@ def test_layers_report_each_check_on_its_own(router):
 def test_no_confidence_overrides_a_must_escalate_intent(router, intent):
     d = router.decide("anything", cls(intent=intent, conf=1.0, alts=()), hit(3))
     assert d.action == "escalate" and d.rule_fired == f"must_escalate_intent:{intent}"
+
+
+def test_rule_escalation_also_records_a_missing_passage(router):
+    d = router.decide("anything", cls(intent="unclear_request", conf=0.99), MISS)
+    assert d.rule_fired == "must_escalate_intent:unclear_request"
+    assert "no supporting passage" in d.reason and d.gates["passages"] == 0
+    assert "no supporting passage" not in router.decide("anything", cls(intent="unclear_request"), hit()).reason

@@ -60,6 +60,7 @@ class GenerationResult:
     model: str = ""
     requests: int = 0
     retries: int = 0
+    cached: bool = False  # every provider response for this ticket came from the cache
     rate_limit_wait_ms: int = 0
     tokens_in: int = 0
     tokens_out: int = 0
@@ -214,6 +215,7 @@ class Generator:
 
     def _call(self, g: GenerationResult, system: str, user: str, retry: bool = False) -> str | None:
         r = self.client.complete(system, user)
+        g.cached = r.cached if g.requests == 0 else (g.cached and r.cached)
         g.requests += r.requests
         g.retries += r.retries + (1 if retry else 0)
         g.rate_limit_wait_ms += r.rate_limit_wait_ms
@@ -222,7 +224,8 @@ class Generator:
         g.degraded = g.degraded or r.degraded
         if not r.ok:
             g.error = r.error
-            g.reason = f"provider {r.error}: {r.detail or 'no detail'}; escalated with a template summary"
+            g.reason = (f"provider failed ({r.error}) after {r.requests} request(s): {r.detail or 'no detail'}; "
+                        "escalated with a template summary")
             return None
         return r.text
 

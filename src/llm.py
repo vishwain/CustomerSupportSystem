@@ -8,9 +8,14 @@ and by Generate later. All provider failure handling lives here, so every caller
 |                | Requests are paced at least 3 s apart. Wait time is reported apart from latency (NFR-01).   |
 | Outage         | Five failed attempts in a row open the circuit: degraded mode, error = provider_down, no    |
 |                | request sent. One probe request is allowed every 60 s; a success closes the circuit.        |
+| Bad key/model  | 401, 403, 404, 400: permanent, so no retry. The circuit opens at once (every later ticket   |
+|                | would fail the same way): error = provider_down, detail names the status. No hang.          |
 | Cost           | Only ':free' model ids (NFR-07), unless ALLOW_PAID_MODEL=1.                                 |
 
-LLM_CACHE=1 caches responses by prompt hash in storage/llm_cache (development only, 10.6).
+Cache (on by default; LLM_CACHE=0 or harness --no-cache turns it off): successful responses only, keyed by
+sha256(model + system prompt + user prompt). The rendered prompt holds the prompt version, the ticket text
+and the passages, so a changed ticket, prompt version or passage set misses the cache. A re-run of the
+same file spends no calls (5.11, gate re-runnable). A corrupt cache file is ignored, never raised.
 The API key is read from the environment (.env via python-dotenv); it is never logged.
 """
 
@@ -32,7 +37,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1"
 class ProviderError(Exception):
     def __init__(self, kind: str, message: str = "", retry_after: float | None = None):
         super().__init__(message or kind)
-        self.kind = kind  # "timeout" | "rate_limit" | "provider_error"
+        self.kind = kind  # "timeout" | "rate_limit" | "provider_error" | "provider_config" (permanent)
         self.retry_after = retry_after
 
 
@@ -85,6 +90,10 @@ def openai_transport(model: str, api_key: str, base_url: str = OPENROUTER_URL,
             except (TypeError, ValueError, AttributeError):
                 pass
             raise ProviderError("rate_limit", str(e), ra) from e
+        except (openai.AuthenticationError, openai.PermissionDeniedError, openai.NotFoundError,
+                openai.BadRequestError) as e:  # bad key, no access, wrong model id: retrying cannot help
+            raise ProviderError("provider_config", f"{type(e).__name__} (status {getattr(e, 'status_code', '?')})"
+                                ) from e
         except (openai.APIConnectionError, openai.APIStatusError) as e:
             raise ProviderError("provider_error", f"{type(e).__name__}: {e}") from e
         text = (r.choices[0].message.content or "") if r.choices else ""
@@ -140,9 +149,13 @@ class LLMClient:
         res = LLMResult(text=None, model=self.model)
         cp = self._cache_path(system, user)
         if cp and cp.exists():
-            d = json.loads(cp.read_text(encoding="utf-8"))
-            res.text, res.cached = d["text"], True
-            return res
+            try:
+                d = json.loads(cp.read_text(encoding="utf-8"))
+                if isinstance(d.get("text"), str):
+                    res.text, res.cached = d["text"], True
+                    return res
+            except (OSError, ValueError, AttributeError):
+                pass  # corrupt or unreadable cache entry: call the provider instead
 
         if self._opened_at is not None:  # circuit open
             if self.clock() - self._opened_at < self.probe_interval_s:
@@ -164,6 +177,11 @@ class LLMClient:
             except ProviderError as e:
                 last_kind = e.kind
                 res.detail = str(e)[:200]
+                if e.kind == "provider_config":  # permanent: open the circuit now, no retry
+                    self._fails_in_row = max(self._fails_in_row + 1, self.breaker_threshold)
+                    self._opened_at = self.clock()
+                    res.degraded, res.error = True, "provider_down"
+                    break
                 if e.kind != "rate_limit":  # a 429 is not an outage
                     self._fails_in_row += 1
                     if self._fails_in_row >= self.breaker_threshold:
@@ -199,8 +217,11 @@ class LLMClient:
         res.rate_limit_wait_ms = wait_ms
         res.latency_ms = max(0, int((self.clock() - t0) * 1000) - wait_ms)
         if res.ok and cp:
-            cp.parent.mkdir(parents=True, exist_ok=True)
-            cp.write_text(json.dumps({"text": res.text}), encoding="utf-8")
+            try:
+                cp.parent.mkdir(parents=True, exist_ok=True)
+                cp.write_text(json.dumps({"text": res.text, "model": self.model}), encoding="utf-8")
+            except OSError:
+                pass  # a cache write failure must not fail the ticket
         return res
 
 
@@ -219,7 +240,7 @@ def client_from_env(**overrides) -> LLMClient:
         raise LLMConfigError(f"MODEL_NAME {model!r} is not a ':free' model id (NFR-07)")
     if not key or key == "your_key_here":
         raise LLMConfigError("OPENROUTER_API_KEY is not set")
-    cache = Path(os.getenv("LLM_CACHE_DIR", "storage/llm_cache")) if os.getenv("LLM_CACHE") == "1" else None
+    cache = None if os.getenv("LLM_CACHE", "1") == "0" else Path(os.getenv("LLM_CACHE_DIR", "storage/llm_cache"))
     kw = dict(
         model=model,
         timeout_s=float(os.getenv("LLM_TIMEOUT_S", "10")),

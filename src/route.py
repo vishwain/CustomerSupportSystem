@@ -202,7 +202,17 @@ class Router:
         }
 
     def decide(self, text: str, cls, retrieval) -> RouteDecision:
-        """cls: src.classify.Classification. retrieval: src.retrieve.RetrievalResult or None (not run)."""
+        """cls: src.classify.Classification. retrieval: src.retrieve.RetrievalResult or None (not run).
+        A rule that fires first still wins, but when retrieval also found nothing the reason says so,
+        so the log shows every cause of the escalation (5.11)."""
+        d = self._decide(text, cls, retrieval)
+        if (d.action == "escalate" and d.rule_fired != "no_retrieval_hit" and retrieval is not None
+                and not retrieval.passages):
+            d.reason += " Also: no supporting passage passed the relevance cutoff."
+            d.gates = {**d.gates, "passages": 0}
+        return d
+
+    def _decide(self, text: str, cls, retrieval) -> RouteDecision:
         cfg = self.cfg
         pre = self.pre_rules(text)
         if pre:
@@ -238,8 +248,8 @@ class Router:
         gates = {"passages": n_pass, "confidence_ok": conf >= cfg.threshold, "must_escalate_mass": mass}
         if n_pass == 0:
             why = "retrieval not run" if retrieval is None else retrieval.reason
-            return RouteDecision("escalate", f"no passage passed the relevance cutoff ({why}); "
-                                 "escalated without a model call", "no_retrieval_hit", gates=gates, **d)
+            return RouteDecision("escalate", f"no supporting passage: nothing passed the relevance cutoff ({why}); "
+                                 "escalated without a draft or a model call", "no_retrieval_hit", gates=gates, **d)
         if conf < cfg.threshold:
             return RouteDecision("draft_for_review", f"intent {cls.intent} confidence {conf:.2f} below threshold "
                                  f"{cfg.threshold:.2f}; {n_pass} passage(s) found, so a draft goes to an agent",
