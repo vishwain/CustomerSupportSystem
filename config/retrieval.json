@@ -1,0 +1,14 @@
+{
+  "chunking": "chars800",
+  "cutoff": 0.47,
+  "top_k": 5,
+  "embedding_model": "all-MiniLM-L6-v2",
+  "set_on": "2026-11-19",
+  "rule": "highest cutoff keeping hold-out top-3 hit rate on answerable tickets >= 85% (FR-09, AS-01)",
+  "evidence": {
+    "report": "docs/retrieval_experiment.md",
+    "holdout_hit3": 0.8596,
+    "holdout_unanswerable_empty": 0.25,
+    "validation_hit3": 0.8302
+  }
+}
