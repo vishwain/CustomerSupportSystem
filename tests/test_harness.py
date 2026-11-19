@@ -15,7 +15,7 @@ def ticket(i, channel="email", **over):
 def run(tmp_path, input_path):
     out = tmp_path / "out"
     code = harness.main(["--input", str(input_path), "--output", str(out),
-                         "--storage", str(tmp_path / "storage"), "--quiet", "--no-retrieval"])
+                         "--storage", str(tmp_path / "storage"), "--quiet", "--no-models"])
     return code, out
 
 def test_unseen_five_ticket_file(tmp_path):
@@ -81,3 +81,19 @@ def test_pipeline_crash_escalates_and_logs(tmp_path, monkeypatch):
     r = harness.process_ticket(normalise(ticket(1), 0), log)
     assert r["error"] == "internal_error" and "jane@example.com" not in r["reason"]
     assert [x["stage"] for x in log.rows("NEW-1")] == ["ingest", "final"]
+
+
+def test_escalation_queue_sorted_by_urgency_then_age(tmp_path):
+    def row(tid, urg, at):
+        return {"ticket_id": tid, "action": "escalate", "channel": "chat", "reason": "r", "received_at": at,
+                "rule_fired": "none", "escalation_package": {"urgency": urg, "summary": "s", "intent": "x"}}
+
+    rows = [row("A", "low", "2026-01-01"), row("B", "high", "2026-03-01"), row("C", "medium", "2026-01-01"),
+            row("D", "unknown", "2026-02-01"), row("E", "high", "2026-01-05")]
+    path = tmp_path / "q.csv"
+    assert harness.write_escalation_queue(path, rows) == 5
+    import csv
+    got = [r["ticket_id"] for r in csv.DictReader(open(path, encoding="utf-8"))]
+    assert got == ["E", "D", "B", "C", "A"]
+    for r in csv.DictReader(open(path, encoding="utf-8")):
+        assert all(v != "" for k, v in r.items() if k != "draft"), r  # FR-13: no empty field but draft

@@ -4,14 +4,19 @@ One command, any ticket file, no hardcoded filename or ticket count:
 
     python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>
 
-Per ticket: Ingest -> pipeline -> final decision row (written BEFORE the action) -> result line.
-Today the pipeline runs Retrieve (writes a retrieval row) and then escalates every accepted
-ticket. Classify, Route, Generate and Validate plug into `run_pipeline`; the harness loop does not change.
-Retrieval needs config/retrieval.json (from docs/retrieval_experiment.py --write-config); without it,
-or with --no-retrieval, the run continues without a retrieval row.
+Per ticket: Ingest -> Route pre-rules -> Classify -> Retrieve -> Route -> (Generate, Validate: not built)
+-> final decision row (written BEFORE the action) -> result line. Every stage writes its own row.
+Until Generate exists the final action is always escalate; the routing row and results.jsonl show what
+Route decided (auto_respond, draft_for_review or escalate) and why.
+
+Needs config/retrieval.json (docs/retrieval_experiment.py) and, for automatic answers, config/routing.json
+(docs/routing_threshold.py). Without routing.json nothing is auto-answered. --no-models skips the
+embedding model (classifier and retriever) for fast plumbing runs: every ticket then escalates as
+classification_failed.
 
 Writes to --output:
-    results.jsonl              one line per ticket: action, reason, error, latency
+    results.jsonl              one line per ticket: action, route decision, intent, reason, error, latency
+    escalation_queue.csv       every escalation with its package (FR-13), sorted by urgency then age (FR-06)
     reconcile.json             A8 check: final rows = tickets processed, no empty required field
     decision_log_extract.jsonl first 20 decision rows (A8 evidence; storage/ is not committed)
     metrics_report.md / .json  skeleton report (FR-27 fills the full figure groups later)
@@ -23,6 +28,7 @@ Exit code: 0 = reconciled, 1 = reconcile failed, 2 = input file unreadable.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import sys
@@ -36,11 +42,13 @@ from pathlib import Path
 from typing import Any
 
 from src import pii
+from src.classify import Classification, Classifier, build_classifier, fallback, log_classification
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
-from src.retrieve import Retriever, build_retriever, log_retrieval
+from src.retrieve import RetrievalResult, Retriever, SentenceTransformerEmbedder, build_retriever, log_retrieval
+from src.route import RouteDecision, Router, log_routing
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
-HARNESS_VERSION = "harness-0.2-retrieval"
+HARNESS_VERSION = "harness-0.3-route"
 EXTRACT_ROWS = 20
 
 
@@ -56,34 +64,77 @@ class Outcome:
     rule_fired: str = "none"
     degraded_mode: bool = False
     placeholder: bool = False
+    route_action: str = "none"
+    intent: str = "unknown"
+    intent_confidence: float = 0.0
+    urgency: str = "unknown"
 
 
 @dataclass
 class Components:
-    """Built once per run, shared by every ticket. None = component not available yet."""
+    """Built once per run, shared by every ticket. None = component not available."""
 
     retriever: Retriever | None = None
+    classifier: Classifier | None = None
+    router: Router | None = None
+
+
+def escalation_package(record: TicketRecord, cls: Classification, res: RetrievalResult | None,
+                       decision: RouteDecision) -> dict[str, Any]:
+    """FR-13 fields for an escalation with no model call: template summary, subject as restatement."""
+    subject = (record.subject or "").strip() or "(no subject)"
+    passages = ([{"passage_id": p.passage_id, "doc_id": p.doc_id, "title": p.title, "score": p.score,
+                  "reviewed": p.reviewed_label} for p in res.passages] if res and res.passages else "none found")
+    return {
+        "ticket_id": record.ticket_id,
+        "summary": f"{cls.intent} ({cls.intent_confidence:.2f}), {cls.urgency} urgency, {record.channel}: {subject}",
+        "restatement": subject,
+        "intent": cls.intent, "intent_confidence": cls.intent_confidence,
+        "alternatives": cls.intent_alternatives,
+        "urgency": cls.urgency, "received_at": record.received_at,
+        "passages": passages,
+        "reason": decision.reason, "unsure_about": decision.reason, "draft": "",
+        "route_action": decision.action, "rule_fired": decision.rule_fired,
+    }
 
 
 def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None = None) -> Outcome:
-    """Classify -> Retrieve -> Route -> Generate -> Validate. Each component writes its own stage row.
-
-    Built so far: Retrieve. Route is not built, so every ticket escalates (the safe default).
-    """
+    """Route pre-rules -> Classify -> Retrieve -> Route. Generate and Validate are not built yet,
+    so the final action is escalate whatever Route chose; the routing row records Route's choice."""
     comp = comp or Components()
-    package: dict[str, Any] = {"channel": record.channel}
+    router = comp.router or Router()
+
+    # Text-only rules first (kill switch, instruction integrity): when they fire, no model call may happen.
+    pre = router.pre_rules(record.text)
+
+    if comp.classifier is not None:
+        cls = comp.classifier.classify(record, allow_llm=pre is None)
+    else:
+        cls = fallback("classification failed: classifier not loaded (--no-models or load error)")
+    log_classification(log, record.ticket_id, record.text, cls)
+
+    res = None
     if comp.retriever is not None:
         t0 = time.perf_counter()
         res = comp.retriever.retrieve(record.text)
         log_retrieval(log, record.ticket_id, record.text, comp.retriever, res,
                       latency_ms=int((time.perf_counter() - t0) * 1000))
-        package["passages"] = [{"passage_id": p.passage_id, "score": p.score} for p in res.passages]
-        package["retrieval"] = res.reason
+
+    decision = router.decide(record.text, cls, res)
+    log_routing(log, record.ticket_id, record.text, decision, cls, router.cfg)
+
+    if decision.action == "escalate":
+        reason = decision.reason
+    elif decision.action == "draft_for_review":
+        reason = f"Route: draft_for_review ({decision.reason}). Generate not built yet, so no draft; escalated."
+    else:
+        reason = f"Route: auto_respond ({decision.reason}). Generate not built yet, so escalated."
     return Outcome(
-        action="escalate",
-        reason="Routing not built yet (harness skeleton); ticket escalated to a person.",
-        escalation_package={"summary": "skeleton run: no classification or routing yet", **package},
-        placeholder=True,
+        action="escalate", reason=reason, error=cls.error if cls.failed else "none",
+        escalation_package=escalation_package(record, cls, res, decision),
+        rule_fired=decision.rule_fired, degraded_mode=cls.degraded, placeholder=decision.action != "escalate",
+        route_action=decision.action, intent=cls.intent, intent_confidence=cls.intent_confidence,
+        urgency=cls.urgency,
     )
 
 
@@ -140,6 +191,11 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         "ticket_id": record.ticket_id,
         "channel": record.channel,
         "action": outcome.action,
+        "route_action": outcome.route_action,
+        "intent": outcome.intent,
+        "intent_confidence": outcome.intent_confidence,
+        "urgency": outcome.urgency,
+        "received_at": record.received_at,
         "reason": outcome.reason,
         "error": outcome.error,
         "rule_fired": outcome.rule_fired,
@@ -148,6 +204,7 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         "log_written": log_written,
         "placeholder": outcome.placeholder,
         "ingest_flags": record.flags,
+        "escalation_package": outcome.escalation_package if outcome.action == "escalate" else {},
     }
 
 
@@ -171,6 +228,7 @@ def skeleton_metrics(results: list[dict[str, Any]], rec: dict[str, Any], run: di
         "tickets_in": len(results),
         "by_channel": dict(Counter(r["channel"] for r in results)),
         "by_action": dict(Counter(r["action"] for r in results)),
+        "by_route_action": dict(Counter(r["route_action"] for r in results)),
         "by_error": dict(Counter(r["error"] for r in results)),
         "latency_ms_p50": pct(0.50),
         "latency_ms_p95": pct(0.95),
@@ -186,11 +244,44 @@ def metrics_markdown(m: dict[str, Any]) -> str:
              "", "| Figure | Value |", "| --- | --- |"]
     for k in ("tickets_in", "final_rows", "decision_log_coverage_ok", "latency_ms_p50", "latency_ms_p95"):
         lines.append(f"| {k} | {m[k]} |")
-    for group in ("by_channel", "by_action", "by_error"):
+    for group in ("by_channel", "by_action", "by_route_action", "by_error"):
         for k, v in sorted(m[group].items()):
             lines.append(f"| {group}: {k} | {v} |")
     lines += ["", m["note"], ""]
     return "\n".join(lines)
+
+
+QUEUE_FIELDS = ("ticket_id", "urgency", "received_at", "summary", "restatement", "intent", "intent_confidence",
+                "alternatives", "passages", "reason", "unsure_about", "draft", "route_action", "rule_fired")
+URGENCY_ORDER = {"high": 0, "unknown": 0, "medium": 1, "low": 2}
+
+
+def write_escalation_queue(path: Path, results: list[dict[str, Any]]) -> int:
+    """FR-13 file, sorted per FR-06: high and unknown first, then medium, then low; oldest first within."""
+    rows = []
+    for r in results:
+        if r["action"] != "escalate":
+            continue
+        pkg = r.get("escalation_package") or {}
+        row = {k: pkg.get(k, "") for k in QUEUE_FIELDS}
+        row.update(ticket_id=r["ticket_id"], urgency=pkg.get("urgency") or "unknown",
+                   received_at=r.get("received_at", ""), reason=pkg.get("reason") or r["reason"],
+                   unsure_about=pkg.get("unsure_about") or r["reason"],
+                   summary=pkg.get("summary") or f"unknown (0.00), unknown urgency, {r['channel']}: (no subject)",
+                   intent=pkg.get("intent", "unknown"), restatement=pkg.get("restatement") or "(no subject)",
+                   passages=pkg.get("passages") or "none found", route_action=pkg.get("route_action", "escalate"),
+                   rule_fired=r.get("rule_fired", "none"), intent_confidence=pkg.get("intent_confidence", 0.0),
+                   alternatives=pkg.get("alternatives", []))
+        for k in ("alternatives", "passages"):
+            if not isinstance(row[k], str):
+                row[k] = json.dumps(row[k], ensure_ascii=False)
+        rows.append(row)
+    rows.sort(key=lambda x: (URGENCY_ORDER.get(x["urgency"], 0), x["received_at"] or "9999"))
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=QUEUE_FIELDS)
+        w.writeheader()
+        w.writerows(rows)
+    return len(rows)
 
 
 def registry_count(registry: Path, input_sha: str) -> int:
@@ -209,8 +300,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--storage", default=os.getenv("STORAGE_DIR", "storage"),
                     help="runtime folder, never committed (default: storage, or $STORAGE_DIR)")
     ap.add_argument("--quiet", action="store_true", help="no per-ticket lines")
-    ap.add_argument("--no-retrieval", action="store_true", help="skip Retrieve (fast plumbing runs, tests)")
+    ap.add_argument("--no-models", action="store_true",
+                    help="skip the embedding model (classifier, retriever): fast plumbing runs and tests")
+    ap.add_argument("--no-llm", action="store_true", help="disable the PR-02 classifier fallback")
+    ap.add_argument("--limit", type=int, default=0, help="process only the first N tickets (0 = all)")
     ap.add_argument("--retrieval-config", default="config/retrieval.json")
+    ap.add_argument("--routing-config", default="config/routing.json")
     a = ap.parse_args(argv)
 
     if hasattr(sys.stdout, "reconfigure"):
@@ -227,6 +322,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         input_sha = file_sha256(in_path)
         records = load(in_path)
+        if a.limit > 0:
+            records = records[: a.limit]
     except (InputFileError, OSError) as e:
         print(f"ERROR: input file unreadable: {e}", file=sys.stderr)
         return 2
@@ -236,14 +333,27 @@ def main(argv: list[str] | None = None) -> int:
     registry = storage / "run_registry.jsonl"
     prior_runs = registry_count(registry, input_sha)
 
-    comp = Components()
-    if not a.no_retrieval:
+    from src.route import RoutingConfig
+    comp = Components(router=Router(RoutingConfig.load(a.routing_config)))
+    print(f"routing: threshold {comp.router.cfg.threshold} from {comp.router.cfg.source}")
+    if not a.no_models:
         try:
-            comp.retriever = build_retriever(a.retrieval_config)
-            print(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
-        except Exception as e:  # missing config or model: run continues, retrieval rows absent
-            print(f"WARNING: retrieval unavailable ({type(e).__name__}: {e}); continuing without it",
-                  file=sys.stderr)
+            emb = SentenceTransformerEmbedder()
+        except Exception as e:  # noqa: BLE001
+            emb = None
+            print(f"WARNING: embedding model unavailable ({type(e).__name__}: {e})", file=sys.stderr)
+        if emb is not None:
+            try:
+                comp.classifier = build_classifier(emb, use_llm_fallback=not a.no_llm)
+                print(f"classifier: {comp.classifier.local.name} {comp.classifier.local.version}"
+                      f"{' + PR-02 fallback' if comp.classifier.llm else ''}")
+            except Exception as e:  # noqa: BLE001 - every ticket then escalates as classification_failed
+                print(f"WARNING: classifier unavailable ({type(e).__name__}: {e})", file=sys.stderr)
+            try:
+                comp.retriever = build_retriever(a.retrieval_config, embedder=emb)
+                print(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
+            except Exception as e:  # noqa: BLE001 - no passages: Route escalates
+                print(f"WARNING: retrieval unavailable ({type(e).__name__}: {e})", file=sys.stderr)
 
     log = DecisionLog(db_path, run_id)
     log.start_run(in_path.name, input_sha, notes=HARNESS_VERSION)
@@ -254,7 +364,8 @@ def main(argv: list[str] | None = None) -> int:
         r = process_ticket(rec, log, comp)
         results.append(r)
         if not a.quiet:
-            print(f"  {r['ticket_id']:<12} {r['channel']:<13} {r['action']:<12} {r['error']}")
+            print(f"  {r['ticket_id']:<12} {r['channel']:<13} {r['intent']:<24} {r['intent_confidence']:.2f}  "
+                  f"route={r['route_action']:<16} final={r['action']:<9} {r['rule_fired']}")
 
     ticket_ids = [r.ticket_id for r in records]
     reconcile = log.reconcile(ticket_ids)
@@ -275,6 +386,7 @@ def main(argv: list[str] | None = None) -> int:
     metrics = skeleton_metrics(results, reconcile, run_info)
     write_jsonl(out_dir / "results.jsonl", results)
     write_jsonl(out_dir / "decision_log_extract.jsonl", extract)
+    n_queue = write_escalation_queue(out_dir / "escalation_queue.csv", results)
     (out_dir / "reconcile.json").write_text(json.dumps(reconcile, indent=2), encoding="utf-8")
     (out_dir / "run_info.json").write_text(json.dumps(run_info, indent=2), encoding="utf-8")
     (out_dir / "metrics_report.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
@@ -284,7 +396,9 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{status}: {reconcile['final_rows']} final rows for {len(records)} tickets; "
           f"actions {reconcile['final_actions']}; rows by stage {reconcile['rows_by_stage']}; "
           f"empty required fields {reconcile['rows_with_empty_required_field']}.")
+    print(f"route decisions {dict(Counter(r['route_action'] for r in results))}; {n_queue} rows in escalation_queue.csv")
     print(f"outputs in {out_dir}; decision log at {db_path}")
+    print(f"read the log: python -m evaluation.show_log --run-dir {out_dir}")
     return 0 if reconcile["ok"] else 1
 
 

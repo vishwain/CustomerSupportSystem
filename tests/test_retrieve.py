@@ -90,7 +90,7 @@ def test_harness_writes_retrieval_row(fake_embedder, tmp_path):
     t = {"ticket_id": "N-1", "channel": "chat", "subject": "", "body": "Getting 429 rate limit on search",
          "received_at": "2026-03-02T08:32:00Z"}
     res = harness.process_ticket(normalise(t, 0), log, comp)
-    assert [x["stage"] for x in log.rows("N-1")] == ["ingest", "retrieval", "final"]
+    assert [x["stage"] for x in log.rows("N-1")] == ["ingest", "classification", "retrieval", "routing", "final"]
     assert res["action"] == "escalate"
 
 
