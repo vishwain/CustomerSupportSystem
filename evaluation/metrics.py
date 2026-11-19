@@ -141,6 +141,9 @@ def ticket_facts(tid: str, st: dict[str, dict[str, Any]], raw: dict[str, Any]) -
         "expected_route": lab.get("expected_route"), "answerable": lab.get("answerable_from_docs"),
         "must_not": bool(lab.get("must_not_auto_respond")), "expected_docs": expected,
         "tier": raw.get("customer_tier") or "unknown", "fluency": raw.get("language_fluency") or "unknown",
+        "region": raw.get("customer_region") or "unknown",
+        "has_subject": bool(str(raw.get("subject") or "").strip()),
+        "query_expanded": bool(((ret or {}).get("prediction") or {}).get("query_intent")),
         "length": "short (<=28 words)" if len(body.split()) <= SHORT_WORDS else "long (>28 words)",
         "text_key": text_key(raw) if raw else "",
     }
@@ -204,7 +207,7 @@ def calibration(fs: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def segments(fs: list[dict[str, Any]]) -> dict[str, Any]:
     out = {}
-    for dim in ("tier", "fluency", "channel", "length"):
+    for dim in ("tier", "region", "fluency", "channel", "length"):
         groups = defaultdict(list)
         for f in fs:
             groups[f[dim]].append(f)
@@ -262,6 +265,10 @@ def build_report(rows: list[dict[str, Any]], run_info: dict[str, Any],
     technical = {
         "intent": intent, "urgency": urgency,
         "retrieval_hit3": pct(sum(hit3(f) for f in ans), len(ans)) if ans else None, "retrieval_n": len(ans),
+        "retrieval_by_subject": {k: {"n": len(g), "hit3": pct(sum(hit3(f) for f in g), len(g)) if g else None}
+                                 for k, g in (("with subject", [f for f in ans if f["has_subject"]]),
+                                              ("no subject", [f for f in ans if not f["has_subject"]]))},
+        "query_expanded_tickets": sum(f["query_expanded"] for f in fs),
         "latency_ms_p50": percentile(lat, 0.5), "latency_ms_p95": percentile(lat, 0.95),
         "processing_ms_p50": percentile(proc, 0.5), "processing_ms_p95": percentile(proc, 0.95),
         "nfr01_pass": None if not proc else percentile(proc, 0.95) < LATENCY_TARGET_MS,
@@ -394,6 +401,9 @@ def to_markdown(m: dict[str, Any]) -> str:
           f"| Urgency accuracy | {fmt(u and u['accuracy'], '%')} | |",
           f"| Retrieval hit rate, top 3 (answerable, n={t['retrieval_n']}) | {fmt(t['retrieval_hit3'], '%')} | "
           "85% or more (AS-01) |",
+          "| Hit@3 with / without a subject | " + " / ".join(
+              f"{fmt(x['hit3'], '%')} (n={x['n']})" for x in t["retrieval_by_subject"].values())
+          + f" | Tickets with the intent-expanded query: {t['query_expanded_tickets']} |",
           f"| Latency p50 / p95, ingest to final action | {fmt(t['latency_ms_p50'], ' ms')} / "
           f"{fmt(t['latency_ms_p95'], ' ms')} | |",
           f"| Latency p50 / p95, excluding provider waits (NFR-01) | {fmt(t['processing_ms_p50'], ' ms')} / "
@@ -435,7 +445,7 @@ def to_markdown(m: dict[str, Any]) -> str:
         L.append(f"| {k} | {x['pass']} | {x['block']} | {x['warn']} |")
     L += ["", f"Rows by stage: {g['rows_by_stage']}"]
     if m["segments"]:
-        L += ["", "## Segments (NFR-06: under 5 pts between groups of 10 or more)", "",
+        L += ["", "## Segments (NFR-06: under 5 pts between groups of 10 or more; 5b.3)", "",
               "Auto rate (eligible) = automatic answers among tickets labelled answerable and not must-not-auto-respond, "
               "so intent mix does not drive the gap (FR-19 acceptance).", "",
               "| Dimension | Group | n | Auto rate (all) | Auto rate, eligible (n) | Hit@3 (n) | Intent acc |",
