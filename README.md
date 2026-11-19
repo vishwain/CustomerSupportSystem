@@ -64,14 +64,19 @@ cp .env.example .env
 | Variable | Purpose | Default in template |
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | your OpenRouter key (required) | _none, set this_ |
-| `MODEL_NAME` | chat model used for generation | `meta-llama/llama-3.1-8b-instruct` |
+| `MODEL_NAME` | chat model for Generate and the PR-02 classifier fallback; `:free` ids only (NFR-07) | `nvidia/nemotron-3.5-lightning:free` |
+| `LLM_REASONING`, `LLM_TIMEOUT_S`, `LLM_MIN_INTERVAL_S` | provider call settings (PRD 10.6) | `off`, `10`, `3` |
+| `LLM_CACHE` | `1` caches provider responses by prompt hash in `storage/llm_cache` (development only) | `0` |
 | `EMBEDDING_MODEL` | sentence-transformers embedding model | `all-MiniLM-L6-v2` |
 | `CHROMA_PATH` | vector store location | `./storage/chroma` |
 | `DATABASE_URL` | decision log database | `sqlite:///./storage/decisions.db` |
 | `LOG_LEVEL` | logging verbosity | `INFO` |
-| `CONFIDENCE_THRESHOLD` | minimum confidence before escalating | `0.80` |
 
 `.env` holds your secret key. It is git-ignored: never commit it.
+
+Thresholds are not environment variables. They are set from data and committed with their date:
+`config/retrieval.json` (relevance cutoff) and `config/routing.json` (routing threshold).
+`config/runtime.json` holds the kill switch: set `"automation_paused": true` and the next ticket escalates (FR-31).
 
 
 ## Run
@@ -83,6 +88,8 @@ All commands run from the repo root with the virtual environment active.
 | Tests (A12) | `python -m pytest tests -q` |
 | Ingest proof: one ticket per channel, normalised (A2) | `python -m src.ingest --input data/development_tickets.json` |
 | Retrieval experiment: compare chunking, pick cutoff, write `config/retrieval.json` (A4) | `python docs/retrieval_experiment.py --write-config` |
+| Train the local classifier (also happens automatically on first use) (A3) | `python -m src.classify` |
+| Routing threshold study: write `config/routing.json` (A5) | `python docs/routing_threshold.py --write-config` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
 The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
@@ -98,8 +105,12 @@ relevance cutoff, date set). The first run downloads `all-MiniLM-L6-v2` to the H
 index is built in `storage/chroma` and rebuilt automatically when the docs, chunking or model change.
 Results and the reasoning are in `docs/retrieval_experiment.md`.
 
-Current state: Ingest and Retrieve run; Route is not built, so every accepted ticket escalates. Components plug
-into `run_pipeline` in `evaluation/harness.py`. `--no-retrieval` skips Retrieve for quick plumbing runs.
+Current state: Ingest, Classify, Retrieve and Route run, and each writes its own decision-log row. Generate is not
+built, so the final action is always escalate; `results.jsonl` and the routing rows show what Route chose
+(auto_respond, draft_for_review or escalate) and why. `--limit 20` runs the first 20 tickets; `--no-models` skips the
+embedding model for quick plumbing runs.
+
+Read a run's decision log as text: `python -m evaluation.show_log --run-dir evaluation/results/<run-folder>`.
 
 ## Where data goes
 
