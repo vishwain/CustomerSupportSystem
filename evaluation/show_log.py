@@ -28,6 +28,9 @@ def _short(row: sqlite3.Row) -> str:
         src = json.loads(row["sources_used"] or "[]")
         extra = (f" mode={pred.get('mode')} can_answer={pred.get('can_answer')} citations_ok={pred.get('citations_ok')}"
                  f" cited={[s['passage_id'] for s in src]} prompt={row['prompt_version']} requests={row['requests']}")
+    elif stage == "validation":
+        g = json.loads(row["guardrail_results"] or "{}")
+        extra = " checks=" + ", ".join(f"{k}:{v}" for k, v in g.items())
     elif stage == "retrieval":
         src = json.loads(row["sources_used"] or "[]")
         extra = f" passages={[(s['passage_id'], s['score']) for s in src]}"

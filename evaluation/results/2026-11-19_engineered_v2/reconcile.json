@@ -1,0 +1,27 @@
+{
+  "run_id": "20261119T145250Z_engineered_tickets_dcdf",
+  "tickets_processed": 6,
+  "distinct_ticket_ids": 6,
+  "final_rows": 6,
+  "final_actions": {
+    "auto_respond": 1,
+    "escalate": 5
+  },
+  "rows_by_stage": {
+    "classification": 6,
+    "final": 6,
+    "generation": 1,
+    "ingest": 6,
+    "retrieval": 6,
+    "routing": 6,
+    "validation": 1
+  },
+  "rows_total": 32,
+  "missing_final": [],
+  "missing_final_count": 0,
+  "unexpected_final": [],
+  "duplicate_final": 0,
+  "rows_with_empty_required_field": 0,
+  "fallback_rows": 0,
+  "ok": true
+}

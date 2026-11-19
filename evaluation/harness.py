@@ -7,8 +7,9 @@ One command, any ticket file, no hardcoded filename or ticket count:
 Per ticket: Ingest -> Route pre-rules -> Classify -> Retrieve -> Route -> Generate (PR-03, only when Route
 chose auto_respond or draft_for_review) -> (Validate: 5.9, not built) -> final decision row (written BEFORE the
 action) -> result line. Every stage writes its own row.
-Until Validate exists nothing is sent: an answer that passes the citation check is held for an agent with
-would_send = true in results.jsonl, so the end-to-end FR-11 precision can be measured now.
+Validate (src/guardrails.py) checks every generated answer and draft before anything leaves: a block escalates
+the ticket, leaves the draft out and logs a validation row. Only an answer that passes every blocking check is
+sent (final action auto_respond). Without a validator nothing is sent.
 
 Needs config/retrieval.json (docs/retrieval_experiment.py) and, for automatic answers, config/routing.json
 (docs/routing_threshold.py). Without routing.json nothing is auto-answered. --no-models skips the
@@ -45,13 +46,13 @@ from typing import Any
 from src import pii
 from src.classify import Classification, Classifier, build_classifier, fallback, log_classification
 from src.generate import GenerationResult, Generator, compose_reply, load_messages, log_generation
+from src.guardrails import GuardrailConfig, Validator, log_validation, private_terms_for
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
 from src.retrieve import RetrievalResult, Retriever, SentenceTransformerEmbedder, build_retriever, log_retrieval
 from src.route import RouteDecision, Router, log_routing
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
-HARNESS_VERSION = "harness-0.4-generate"
-VALIDATE_BUILT = False  # 5.9 sets this: only then can a checked answer be sent
+HARNESS_VERSION = "harness-0.5-validate"
 EXTRACT_ROWS = 20
 
 
@@ -84,6 +85,8 @@ class Components:
     router: Router | None = None
     generator: Generator | None = None
     messages: dict[str, str] | None = None
+    validator: Validator | None = None  # None = nothing is ever sent automatically
+    private_terms: set[str] = field(default_factory=set)  # every customer name/id in the run (FR-22)
 
 
 def escalation_package(record: TicketRecord, cls: Classification, res: RetrievalResult | None,
@@ -144,6 +147,8 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
         log_generation(log, record.ticket_id, record.text, gen, res.for_generation)
 
     draft, would_send, error, rule = "", False, (cls.error if cls.failed else "none"), decision.rule_fired
+    validated: bool | None = None
+    gen_for_package = gen
     if decision.action == "escalate":
         reason = decision.reason
     elif gen is None:
@@ -156,25 +161,45 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
     elif not gen.can_answer:
         reason, rule = f"Model cannot answer from the passages (FR-16): {gen.unsure_about or gen.reason}", "cannot_answer"
     else:
-        draft = compose_reply(gen, res.for_generation, messages)
-        if gen.mode == "draft":
-            reason = (f"Draft for an agent (FR-14): {decision.reason}. Citations checked. Validate (5.9) "
-                      "not built yet.")
+        candidate = compose_reply(gen, res.for_generation, messages)
+        kind = "answer" if gen.mode == "answer" else "draft"
+        if comp.validator is None:
+            draft, would_send = candidate, gen.mode == "answer"
+            reason = f"{kind.capitalize()} passed the citation check, but Validate is unavailable, so nothing is sent."
         else:
-            would_send = True
-            reason = ("Answer passed the citation check, but Validate (5.9: private data, grounding, commitments) "
-                      "is not built, so it is held for an agent.")
-    action = "auto_respond" if (would_send and VALIDATE_BUILT) else "escalate"
+            terms = comp.private_terms | {v for v in (record.held_for_validate or {}).values() if v}
+            v = comp.validator.validate(
+                ticket_text=record.text, sentences=gen.sentences,
+                extra_texts=[gen.restatement, gen.escalation_summary, gen.unsure_about, candidate],
+                passages=res.for_generation, mode=gen.mode, confidence=cls.intent_confidence,
+                threshold=router.cfg.threshold, private_terms=terms)
+            log_validation(log, record.ticket_id, record.text, v, gen.mode, comp.validator.cfg)
+            validated = v.passed
+            if not v.passed:
+                rule = "guardrail:" + ",".join(v.blocked_by)
+                reason = (f"Validate blocked the {kind} ({v.reason}). Escalated; the {kind} is left out and the "
+                          "customer gets the holding message.")
+                if "private_data" in v.blocked_by:
+                    gen_for_package = None  # model text may hold the private data: template summary instead
+            elif gen.mode == "draft":
+                draft = candidate
+                reason = f"Draft for an agent (FR-14): {decision.reason}. Passed Validate ({v.reason})."
+            else:
+                draft, would_send = candidate, True
+                reason = f"Automatic answer: {decision.reason}. Passed Validate ({v.reason})."
+    action = "auto_respond" if (would_send and validated) else "escalate"
     gen_info = {} if gen is None else {
         "gen_action": gen.action, "mode": gen.mode, "can_answer": gen.can_answer, "citations_ok": gen.citations_ok,
-        "cited": gen.cited, "unresolved": gen.unresolved, "would_send": would_send, "draft": draft,
+        "cited": gen.cited, "unresolved": gen.unresolved, "would_send": would_send, "validated": validated,
+        "draft": draft,
         "requests": gen.requests, "prompt_version": gen.prompt_version}
     return Outcome(
         action=action, reason=reason, error=error,
         reply=draft if action == "auto_respond" else None,
-        escalation_package=escalation_package(record, cls, res, decision, gen, draft, reason),
+        escalation_package=escalation_package(record, cls, res, decision, gen_for_package,
+                                              draft if action == "escalate" else "", reason),
         rule_fired=rule, degraded_mode=cls.degraded or bool(gen and gen.degraded),
-        placeholder=would_send and not VALIDATE_BUILT,
+        placeholder=False,
         route_action=decision.action, intent=cls.intent, intent_confidence=cls.intent_confidence,
         urgency=cls.urgency, generation=gen_info,
         customer_message=draft if action == "auto_respond" else messages["holding_message"],
@@ -405,12 +430,22 @@ def main(argv: list[str] | None = None) -> int:
                       f"{' + PR-02 fallback' if comp.classifier.llm else ''}")
             except Exception as e:  # noqa: BLE001 - every ticket then escalates as classification_failed
                 print(f"WARNING: classifier unavailable ({type(e).__name__}: {e})", file=sys.stderr)
+            if comp.generator is not None:
+                try:
+                    gcfg = GuardrailConfig.load()
+                    comp.validator = Validator(emb, gcfg, prompt_system=comp.generator.prompt.system)
+                    print(f"validate: grounding floor {gcfg.grounding_floor} from {gcfg.source}"
+                          + ("" if gcfg.grounding_floor is not None else " (NOT SET: every answer will be blocked)"))
+                except Exception as e:  # noqa: BLE001 - no validator: nothing is sent
+                    print(f"WARNING: Validate unavailable ({type(e).__name__}: {e}); nothing will be sent",
+                          file=sys.stderr)
             try:
                 comp.retriever = build_retriever(a.retrieval_config, embedder=emb)
                 print(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
             except Exception as e:  # noqa: BLE001 - no passages: Route escalates
                 print(f"WARNING: retrieval unavailable ({type(e).__name__}: {e})", file=sys.stderr)
 
+    comp.private_terms = private_terms_for(records)
     log = DecisionLog(db_path, run_id)
     log.start_run(in_path.name, input_sha, notes=HARNESS_VERSION)
     print(f"run {run_id}: {len(records)} tickets from {in_path} (runs on this file before: {prior_runs})")
@@ -421,7 +456,8 @@ def main(argv: list[str] | None = None) -> int:
         results.append(r)
         if not a.quiet:
             g = r["generation"]
-            gtxt = (f" gen={g['gen_action']}{' SEND-READY' if g['would_send'] else ''}" if g else "")
+            gtxt = (f" gen={g['gen_action']}{' SENT' if r['action'] == 'auto_respond' else ''}"
+                    f"{' BLOCKED' if g.get('validated') is False else ''}" if g else "")
             print(f"  {r['ticket_id']:<12} {r['channel']:<13} {r['intent']:<24} {r['intent_confidence']:.2f}  "
                   f"route={r['route_action']:<16}{gtxt:<28} final={r['action']:<9} {r['rule_fired']}")
 
@@ -456,7 +492,8 @@ def main(argv: list[str] | None = None) -> int:
           f"empty required fields {reconcile['rows_with_empty_required_field']}.")
     gens = [r["generation"] for r in results if r["generation"]]
     print(f"route decisions {dict(Counter(r['route_action'] for r in results))}; generation "
-          f"{dict(Counter(g['gen_action'] for g in gens))}; send-ready {sum(g['would_send'] for g in gens)}; "
+          f"{dict(Counter(g['gen_action'] for g in gens))}; blocked by Validate "
+          f"{sum(g.get('validated') is False for g in gens)}; sent {sum(r['action'] == 'auto_respond' for r in results)}; "
           f"{n_queue} rows in escalation_queue.csv")
     if gens:
         print(f"read the answers: python -m evaluation.show_answers --run-dir {out_dir}")

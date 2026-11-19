@@ -1,0 +1,11 @@
+{
+  "run_id": "20261119T143316Z_validation_tickets_2427",
+  "input_path": "data\\validation_tickets.json",
+  "input_name": "validation_tickets.json",
+  "input_sha256": "94c5b1adc1203f06d59522a909d755e8671e9bf1b165a0bc5a74ab62501c827b",
+  "tickets_in": 15,
+  "db_path": "storage\\runs\\20261119T143316Z_validation_tickets_2427\\decisions.db",
+  "harness_version": "harness-0.5-validate",
+  "finished_at": "2026-11-19T14:34:40.310Z",
+  "runs_on_this_input": 6
+}
