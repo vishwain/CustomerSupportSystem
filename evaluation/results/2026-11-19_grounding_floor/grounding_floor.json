@@ -1,0 +1,83 @@
+{
+  "run_date": "2026-11-19",
+  "embedding_model": "all-MiniLM-L6-v2",
+  "chunking": "chars800",
+  "floor": {
+    "n_sentences": 819,
+    "n_answers": 200,
+    "floor": 0.21,
+    "percentiles": {
+      "1": 0.197,
+      "5": 0.21,
+      "10": 0.253,
+      "25": 0.35,
+      "50": 0.504,
+      "75": 0.607
+    },
+    "lowest_examples": [
+      {
+        "ticket_id": "DEV-0068",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0451",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0322",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0137",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0349",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0209",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0472",
+        "similarity": 0.18,
+        "sentence": "Based on what you have described, the relevant guidance in our documentation covers the likely causes and the steps to work through them in order."
+      },
+      {
+        "ticket_id": "DEV-0309",
+        "similarity": 0.197,
+        "sentence": "I would suggest starting with the checks listed there, as they resolve the majority of cases of this kind, and noting which step changes the behaviour so that w"
+      }
+    ]
+  },
+  "false_positives": {
+    "pii_in_references": 0,
+    "pii_in_articles": 0,
+    "commitment_hits_in_references": [],
+    "commitment_hits_in_articles": [
+      {
+        "doc_id": "DOC-BILL-002",
+        "phrase": "refunded"
+      },
+      {
+        "doc_id": "DOC-BILL-002",
+        "phrase": "refunded"
+      },
+      {
+        "doc_id": "DOC-BILL-002",
+        "phrase": "refund"
+      },
+      {
+        "doc_id": "DOC-BILL-002",
+        "phrase": "credit was applied"
+      }
+    ]
+  }
+}

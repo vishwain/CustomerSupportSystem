@@ -1,0 +1,30 @@
+{
+  "grounding_floor": 0.21,
+  "set_on": "2026-11-19",
+  "why_floor": "set from data by docs/grounding_floor.py (5th percentile of reference-answer sentence similarity, FR-22); null = grounding check fails closed",
+  "commitment_patterns": [
+    "\\brefund(?:s|ed|ing)?\\b",
+    "\\bcredit(?:s|ed)?\\s+(?:to|on|against|for)\\s+(?:your|the)(?:\\s+next)?\\s+(?:account|invoice|bill)\\b",
+    "\\bdiscount(?:s|ed)?\\b",
+    "\\bcompensat\\w*",
+    "\\bwaive[ds]?\\b",
+    "\\bguarantee[ds]?\\b",
+    "\\b(?:fixed|resolved|patched|repaired)\\b[^.]{0,40}\\bon (?:our|cloudserve'?s?) (?:side|end)\\b",
+    "\\bon our (?:side|end)\\b[^.]{0,40}\\b(?:fixed|resolved|patched)\\b",
+    "\\b(?:we|our (?:team|engineers))\\b[^.]{0,30}\\b(?:have|has)\\s+(?:fixed|resolved|patched)\\b",
+    "\\bwill be (?:fixed|resolved|patched|restored)\\b",
+    "\\b(?:by|before|within)\\s+(?:tomorrow|tonight|today|the end of (?:the )?(?:day|week)|end of (?:day|week)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\\d+\\s*(?:minutes?|hours?|days?|business days?))\\b"
+  ],
+  "commitment_note": "FR-23; seeded from the three must_not_claim items shared by all 200 reference answers. A match is allowed only if the same words appear in the cited passages.",
+  "max_avg_words": 20,
+  "max_sentence_words": 35,
+  "shingle_words": 8,
+  "promise_patterns": [
+    "\\b(?:we|i)(?:'ll|'ve| will| have| shall| are going to| can| would)\\b[^.]{0,30}\\b(?:refund|credit|waive|discount|compensat)\\w*",
+    "\\byou(?:'ll| will| are going to)\\s+(?:be\\s+|get\\s+|receive\\s+)?[^.]{0,20}\\b(?:refund|credit|discount|compensat)\\w*",
+    "\\b(?:refund|credit|discount|compensation)\\s+(?:has been|was|will be|is being)\\s+(?:issued|processed|approved|applied|granted)",
+    "\\b(?:has|have) been (?:fixed|resolved|patched) on (?:our|cloudserve'?s?) (?:side|end)"
+  ],
+  "promise_note": "Refund/credit/fix promises: blocked even when the cited passage mentions refunds or credits.",
+  "floor_evidence": "evaluation/results/2026-11-19_grounding_floor/grounding_floor.md"
+}

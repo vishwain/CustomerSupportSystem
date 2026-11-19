@@ -72,9 +72,11 @@ def test_citation_failures(sentences, unresolved):
 
 # ------------------------------------------------------------------ generator
 
+V1 = "build/generate_v1.txt"  # pinned: these tests check v1 behaviour, whichever version config/generation.json runs
+
 def test_answer_happy_path_and_prompt_shape():
     c = FakeClient([answer()])
-    g = Generator(c).generate(ticket(), "rate_limit", PASSAGES, "answer")
+    g = Generator(c, prompt_path=V1).generate(ticket(), "rate_limit", PASSAGES, "answer")
     assert g.usable and g.action == "answer" and g.cited == ["DOC-API-001#c01"] and g.prompt_version == "PR-03 v1.0"
     system, user = c.calls[0]
     assert "MODE: answer" in user and "PREDICTED INTENT: rate_limit" in user
@@ -150,7 +152,7 @@ def test_reply_has_label_first_and_sources_last():
 
 def test_generation_row_logs_sources_and_prompt_version(tmp_path):
     log = DecisionLog(tmp_path / "d.db", "r")
-    g = Generator(FakeClient([answer()])).generate(ticket(), "rate_limit", PASSAGES, "answer")
+    g = Generator(FakeClient([answer()]), prompt_path=V1).generate(ticket(), "rate_limit", PASSAGES, "answer")
     log_generation(log, "T-1", "text", g, PASSAGES)
     row = log.rows("T-1")[0]
     assert row["stage"] == "generation" and row["action_taken"] == "answer"
