@@ -1,0 +1,4 @@
+# Datasets: check out the exact committed bytes on every machine. Without this, Windows git
+# (core.autocrlf) rewrites line endings in data/*.json on clone, so the input sha256 in run_info.json,
+# the Chroma fingerprint and the classifier fingerprint differ between clones of the same commit.
+data/** -text
