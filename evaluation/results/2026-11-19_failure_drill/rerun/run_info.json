@@ -1,0 +1,11 @@
+{
+  "run_id": "20261119T154146Z_failure_tickets_c5e7",
+  "input_path": "tests\\fixtures\\failure_tickets.json",
+  "input_name": "failure_tickets.json",
+  "input_sha256": "0435829bfbf913b82c6b1ead34c71584ec85b5d7cb3ab5eb09ce06c1890c6482",
+  "tickets_in": 16,
+  "db_path": "storage\\runs\\20261119T154146Z_failure_tickets_c5e7\\decisions.db",
+  "harness_version": "harness-0.5-validate",
+  "finished_at": "2026-11-19T15:42:49.670Z",
+  "runs_on_this_input": 2
+}

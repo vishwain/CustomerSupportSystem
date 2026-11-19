@@ -1,0 +1,25 @@
+{
+  "run_id": "20261119T154251Z_failure_tickets_201f",
+  "tickets_processed": 16,
+  "distinct_ticket_ids": 16,
+  "final_rows": 16,
+  "final_actions": {
+    "escalate": 16
+  },
+  "rows_by_stage": {
+    "classification": 9,
+    "final": 16,
+    "generation": 2,
+    "ingest": 16,
+    "retrieval": 9,
+    "routing": 9
+  },
+  "rows_total": 61,
+  "missing_final": [],
+  "missing_final_count": 0,
+  "unexpected_final": [],
+  "duplicate_final": 0,
+  "rows_with_empty_required_field": 0,
+  "fallback_rows": 0,
+  "ok": true
+}

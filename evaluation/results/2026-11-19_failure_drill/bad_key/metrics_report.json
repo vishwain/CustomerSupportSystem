@@ -1,0 +1,34 @@
+{
+  "run_id": "20261119T154251Z_failure_tickets_201f",
+  "input": "failure_tickets.json",
+  "run_date_utc": "2026-11-19T15:43:56.567Z",
+  "runs_on_this_input": 3,
+  "tickets_in": 16,
+  "by_channel": {
+    "email": 8,
+    "chat": 4,
+    "forum": 2,
+    "unknown": 2
+  },
+  "by_action": {
+    "escalate": 16
+  },
+  "by_route_action": {
+    "none": 7,
+    "escalate": 7,
+    "auto_respond": 2
+  },
+  "by_error": {
+    "malformed_input": 7,
+    "none": 7,
+    "provider_down": 2
+  },
+  "provider_requests": 1,
+  "generation_cache_hits": 0,
+  "degraded_mode_tickets": 2,
+  "latency_ms_p50": 109,
+  "latency_ms_p95": 414,
+  "decision_log_coverage_ok": true,
+  "final_rows": 16,
+  "note": "Skeleton report. Business, technical, governance and segment figures added with FR-27."
+}
