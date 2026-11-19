@@ -89,12 +89,27 @@ class Components:
     private_terms: set[str] = field(default_factory=set)  # every customer name/id in the run (FR-22)
 
 
+def body_opening(body: str, limit: int = 160) -> str:
+    """First sentence of the body, private data scrubbed, cut at a word boundary. The agent reads this in
+    the queue before opening the ticket (5.10, FR-13)."""
+    text = " ".join(pii.scrub(body or "").split())
+    if not text:
+        return ""
+    for end in (". ", "? ", "! "):
+        i = text.find(end)
+        if 0 < i < limit:
+            return text[: i + 1]
+    return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + " ..."
+
+
 def escalation_package(record: TicketRecord, cls: Classification, res: RetrievalResult | None,
                        decision: RouteDecision, gen: GenerationResult | None = None, draft: str = "",
                        reason: str | None = None) -> dict[str, Any]:
-    """FR-13. Without a model call: template summary, subject as restatement, route reason as unsure_about.
-    With one: summary, restatement and unsure_about come from the PR-03 JSON; draft only if it passed checks."""
+    """FR-13. Without a model call: template summary, subject plus the opening of the body as restatement
+    (private data scrubbed), route reason as unsure_about. With one: summary, restatement and unsure_about
+    come from the PR-03 JSON; draft only if it passed checks."""
     subject = (record.subject or "").strip() or "(no subject)"
+    opening = body_opening(record.body)
     passages = ([{"passage_id": p.passage_id, "doc_id": p.doc_id, "title": p.title, "score": p.score,
                   "reviewed": p.reviewed_label} for p in res.passages] if res and res.passages else "none found")
     template = f"{cls.intent} ({cls.intent_confidence:.2f}), {cls.urgency} urgency, {record.channel}: {subject}"
@@ -103,7 +118,8 @@ def escalation_package(record: TicketRecord, cls: Classification, res: Retrieval
     return {
         "ticket_id": record.ticket_id,
         "summary": (gen.escalation_summary if model_ok and gen.escalation_summary else template),
-        "restatement": (gen.restatement if model_ok and gen.restatement else subject),
+        "restatement": (gen.restatement if model_ok and gen.restatement
+                        else f"{subject}: {opening}" if opening else subject),
         "intent": cls.intent, "intent_confidence": cls.intent_confidence,
         "alternatives": cls.intent_alternatives,
         "urgency": cls.urgency, "received_at": record.received_at,

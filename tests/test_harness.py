@@ -97,3 +97,12 @@ def test_escalation_queue_sorted_by_urgency_then_age(tmp_path):
     assert got == ["E", "D", "B", "C", "A"]
     for r in csv.DictReader(open(path, encoding="utf-8")):
         assert all(v != "" for k, v in r.items() if k != "draft"), r  # FR-13: no empty field but draft
+
+
+def test_body_opening_is_short_and_scrubbed():
+    from evaluation.harness import body_opening
+    assert body_opening("Mail jane.doe@example.com now. Second sentence.") == "Mail [REDACTED:email] now."
+    long = "word " * 80
+    out = body_opening(long)
+    assert len(out) <= 165 and out.endswith("...")
+    assert body_opening("") == ""

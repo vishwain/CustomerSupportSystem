@@ -1,0 +1,11 @@
+{
+  "run_id": "20261119T150650Z_must_escalate_tickets_39ad",
+  "input_path": "tests\\fixtures\\must_escalate_tickets.json",
+  "input_name": "must_escalate_tickets.json",
+  "input_sha256": "d774f5c58ef4fb96d87a6cd25130e8b437c44281fb8a5ab9a3d0fe7e279a1333",
+  "tickets_in": 15,
+  "db_path": "storage\\runs\\20261119T150650Z_must_escalate_tickets_39ad\\decisions.db",
+  "harness_version": "harness-0.5-validate",
+  "finished_at": "2026-11-19T15:07:51.520Z",
+  "runs_on_this_input": 1
+}

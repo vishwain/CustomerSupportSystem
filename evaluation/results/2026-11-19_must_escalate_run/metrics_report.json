@@ -1,0 +1,25 @@
+{
+  "run_id": "20261119T150650Z_must_escalate_tickets_39ad",
+  "input": "must_escalate_tickets.json",
+  "run_date_utc": "2026-11-19T15:07:51.520Z",
+  "runs_on_this_input": 1,
+  "tickets_in": 15,
+  "by_channel": {
+    "email": 10,
+    "chat": 5
+  },
+  "by_action": {
+    "escalate": 15
+  },
+  "by_route_action": {
+    "escalate": 15
+  },
+  "by_error": {
+    "none": 15
+  },
+  "latency_ms_p50": 120,
+  "latency_ms_p95": 142,
+  "decision_log_coverage_ok": true,
+  "final_rows": 15,
+  "note": "Skeleton report. Business, technical, governance and segment figures added with FR-27."
+}
