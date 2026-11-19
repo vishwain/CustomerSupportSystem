@@ -82,10 +82,10 @@ Legend: [ ] not done, [x] done (confirmed)
 
 ## Stage 5: Build, evaluate, revise (Week 2 into Week 3)
 Build checkpoints (Build Specification):
-- [ ] 5.1 Day 1: Ingest; one ticket per channel (email, chat, docs_comment, forum) printed normalised (A2)
+- [x] 5.1 Day 1: Ingest; one ticket per channel (email, chat, docs_comment, forum) printed normalised (A2)
 - [ ] 5.2 Day 2: Chunking (try at least 2 configs, measure, record why) + embeddings + Chroma + retrieval returns traceable passages; relevance threshold (return nothing if irrelevant) (A4)
-- [ ] 5.3 Decision log schema + SQLite store created early (A8)
-- [ ] 5.4 Evaluation harness skeleton: takes --input and --output path arguments, no hardcoded filenames (A9, A10)
+- [x] 5.3 Decision log schema + SQLite store created early (A8)
+- [x] 5.4 Evaluation harness skeleton: takes --input and --output path arguments, no hardcoded filenames (A9, A10)
 - [ ] 5.5 Day 3: Classifier (intent + urgency + confidence + alternatives + fallback) (A3)
 - [ ] 5.6 Day 3: Routing with data-derived threshold, deterministic, reason logged (A5); run 20 tickets and read the log
 - [ ] 5.7 Calibrate confidence (bins vs observed accuracy); choose threshold from data and record trade-off
