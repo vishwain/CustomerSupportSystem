@@ -96,7 +96,9 @@ All commands run from the repo root with the virtual environment active.
 | Grounding floor for Validate, plus guardrail false-positive check; writes `config/guardrails.json` (5.9) | `python docs/grounding_floor.py --write-config` |
 | Guardrail demo: every guard fires on crafted outputs, no model call (A7, video) | `python docs/guardrail_demo.py` |
 | Must-not-auto-respond check: every risky class escalates; sets the alternative-guard floor (5.10) | `python docs/must_escalate_check.py --write-config` |
+| Failure drill: malformed input, no docs, bad key, timeout, cache re-run; each run must reconcile (5.11, A11) | `python docs/failure_drill.py` |
 | Engineered tickets through the full pipeline (A7) | `python -m evaluation.harness --input tests/fixtures/engineered_tickets.json --output evaluation/results/<run-folder>` |
+| Gate check: input records = final log rows, valid actions, no must-not ticket answered; optional re-run comparison (5.12) | `python -m evaluation.gate_check --run-dir evaluation/results/<gate run> --compare evaluation/results/<re-run>` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
 The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
@@ -123,7 +125,14 @@ four independent checks: predicted intent, dispute wording (any intent), securit
 intent) and the calibrated probability of the risky classes (floor set from data). Each escalation carries a
 summary, the opening of the ticket and the retrieved sources. Customer-facing text is in `config/messages.json`; the PR-03 version in
 `config/generation.json`. `--limit 20` runs the first 20 tickets; `--no-models` skips the embedding model;
-`--no-llm` skips all provider calls.
+`--no-llm` skips all provider calls; `--no-cache` skips the provider cache.
+
+Failure handling (A11): a malformed record (empty, missing fields, wrong types, undecodable text, non-UTF-8
+file) is logged and escalated without a model call. No supporting passage escalates with no draft. Every
+provider call has a timeout (`LLM_TIMEOUT_S`), two retries with backoff, a 60 s cap on rate-limit waits and a
+circuit breaker; a bad key or model id is not retried and opens the circuit at once. Broken model JSON gets one
+repair, then escalates. Successful responses are cached (on by default), so a re-run of the same file spends
+no calls. Every case writes a final decision row with its reason, so every run reconciles.
 
 Read the generated answers next to the ticket and the cited passage text:
 `python -m evaluation.show_answers --run-dir evaluation/results/<run-folder>`.
