@@ -98,6 +98,7 @@ All commands run from the repo root with the virtual environment active.
 | Must-not-auto-respond check: every risky class escalates; sets the alternative-guard floor (5.10) | `python docs/must_escalate_check.py --write-config` |
 | Failure drill: malformed input, no docs, bad key, timeout, cache re-run; each run must reconcile (5.11, A11) | `python docs/failure_drill.py` |
 | Engineered tickets through the full pipeline (A7) | `python -m evaluation.harness --input tests/fixtures/engineered_tickets.json --output evaluation/results/<run-folder>` |
+| Query experiment: text vs intent-expanded retrieval query, cutoff per mode; sets `query_mode` and cutoff (5.13 follow-up, NFR-06) | `python docs/query_experiment.py --write-config` |
 | Gate check: input records = final log rows, valid actions, no must-not ticket answered; optional re-run comparison (5.12) | `python -m evaluation.gate_check --run-dir evaluation/results/<gate run> --compare evaluation/results/<re-run>` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
