@@ -1,0 +1,27 @@
+{
+  "run_id": "20261119T155250Z_validation_tickets_7e98",
+  "tickets_processed": 80,
+  "distinct_ticket_ids": 80,
+  "final_rows": 80,
+  "final_actions": {
+    "auto_respond": 49,
+    "escalate": 31
+  },
+  "rows_by_stage": {
+    "classification": 80,
+    "final": 80,
+    "generation": 51,
+    "ingest": 80,
+    "retrieval": 80,
+    "routing": 80,
+    "validation": 51
+  },
+  "rows_total": 502,
+  "missing_final": [],
+  "missing_final_count": 0,
+  "unexpected_final": [],
+  "duplicate_final": 0,
+  "rows_with_empty_required_field": 0,
+  "fallback_rows": 0,
+  "ok": true
+}

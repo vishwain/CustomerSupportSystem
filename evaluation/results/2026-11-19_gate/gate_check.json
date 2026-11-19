@@ -1,0 +1,81 @@
+{
+  "run_id": "20261119T155250Z_validation_tickets_7e98",
+  "input": "data\\validation_tickets.json",
+  "input_sha256": "94c5b1adc1203f06d59522a909d755e8671e9bf1b165a0bc5a74ab62501c827b",
+  "checks": {
+    "records_in_file": 80,
+    "tickets_after_ingest": 80,
+    "results_lines": 80,
+    "final_rows_in_log": 80,
+    "tickets_without_final": [],
+    "final_rows_without_ticket": [],
+    "tickets_with_2plus_finals": [],
+    "bad_final_actions": [],
+    "escalations_without_reason": [],
+    "auto_without_reply": [],
+    "auto_not_validated": [],
+    "tickets_missing_ingest_row": [],
+    "must_not_answered_automatically": [],
+    "harness_reconcile_ok": true,
+    "compare_run": "evaluation\\results\\2026-11-19_gate_rerun",
+    "compare_differences": [],
+    "compare_provider_requests": 0,
+    "compare_cache_hits": 51
+  },
+  "passes": {
+    "one final row per ticket, none extra": true,
+    "every final action is auto_respond or escalate": true,
+    "every escalation has a reason": true,
+    "every automatic answer has a reply that passed Validate": true,
+    "every ticket has an ingest row": true,
+    "no must_not_auto_respond ticket answered automatically": true,
+    "harness reconcile.json ok": true,
+    "same input, same route and final action (determinism)": true
+  },
+  "summary": {
+    "actions": {
+      "auto_respond": 49,
+      "escalate": 31
+    },
+    "route_actions": {
+      "auto_respond": 51,
+      "escalate": 29
+    },
+    "rules_fired": {
+      "none": 49,
+      "must_escalate_intent:unclear_request": 6,
+      "no_retrieval_hit": 9,
+      "must_escalate_intent:compliance_request": 1,
+      "must_escalate_intent:feature_request": 3,
+      "must_escalate_intent:data_residency": 6,
+      "guardrail:grounding": 2,
+      "must_escalate_intent:security_incident": 4
+    },
+    "errors": {
+      "none": 80
+    },
+    "auto_by_intent": {
+      "api_key_issue": 4,
+      "authentication_failure": 3,
+      "account_access": 4,
+      "billing_query": 10,
+      "rollback_request": 5,
+      "performance_degradation": 3,
+      "api_usage_question": 3,
+      "onboarding": 1,
+      "deployment_failure": 5,
+      "quota_or_overage": 2,
+      "webhook_issue": 3,
+      "data_export": 1,
+      "integration_help": 3,
+      "configuration_help": 1,
+      "sso_configuration": 1
+    },
+    "provider_requests": 47,
+    "cache_hits": 4,
+    "degraded_mode_tickets": 0,
+    "latency_ms_p50": 2211,
+    "latency_ms_p95": 5164
+  },
+  "ok": true
+}
