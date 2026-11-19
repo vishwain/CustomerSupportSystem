@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 venv/
 .env
+.pytest_cache/
 
 # Runtime state: decision logs, vector store (never committed)
 storage/
