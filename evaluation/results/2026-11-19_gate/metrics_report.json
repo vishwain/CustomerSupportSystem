@@ -1,18 +1,571 @@
 {
-  "run_id": "20261119T155250Z_validation_tickets_7e98",
-  "input": "validation_tickets.json",
-  "run_date_utc": "2026-11-19T15:56:34.711Z",
-  "runs_on_this_input": 7,
+  "run": {
+    "run_id": "20261119T155250Z_validation_tickets_7e98",
+    "finished_at": "2026-11-19T15:56:34.711Z",
+    "git_commit": "2c453f4",
+    "input": "data\\validation_tickets.json",
+    "input_sha256": "94c5b1adc1203f06d59522a909d755e8671e9bf1b165a0bc5a74ab62501c827b",
+    "runs_on_this_input": 7,
+    "labelled_input": true
+  },
+  "volume": {
+    "processed": 80,
+    "automatic": 49,
+    "escalated": 31,
+    "by_channel": {
+      "forum": 11,
+      "chat": 22,
+      "docs_comment": 16,
+      "email": 31
+    },
+    "by_channel_and_outcome": {
+      "forum": {
+        "auto_respond": 7,
+        "escalate": 4
+      },
+      "chat": {
+        "escalate": 12,
+        "auto_respond": 10
+      },
+      "docs_comment": {
+        "escalate": 5,
+        "auto_respond": 11
+      },
+      "email": {
+        "auto_respond": 21,
+        "escalate": 10
+      }
+    },
+    "escalated_by_cause": {
+      "must_escalate_intent": 20,
+      "no_retrieval_hit": 9,
+      "validate_block": 2
+    },
+    "blocked_by_guardrail": {
+      "grounding": 2
+    }
+  },
+  "business": {
+    "auto_resolution_rate": 61.2,
+    "escalation_rate": 38.8,
+    "replay_fcr": 43.8,
+    "replay_fcr_definition": "automatic answers on tickets labelled expected_route = auto_respond, that passed Validate, / all tickets (PRD Section 8). The label follows past handling (AS-07).",
+    "time_to_final_ms_mean": 1955,
+    "time_to_final_ms_median": 2211
+  },
+  "technical": {
+    "intent": {
+      "per_class": {
+        "account_access": {
+          "n": 4,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "api_key_issue": {
+          "n": 6,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "api_usage_question": {
+          "n": 4,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "authentication_failure": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "billing_query": {
+          "n": 10,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "compliance_request": {
+          "n": 1,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "configuration_help": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "data_export": {
+          "n": 1,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "data_residency": {
+          "n": 6,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "database_issue": {
+          "n": 1,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "deployment_failure": {
+          "n": 5,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "feature_request": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "integration_help": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "onboarding": {
+          "n": 4,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "performance_degradation": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "quota_or_overage": {
+          "n": 2,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "rate_limit": {
+          "n": 1,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "rollback_request": {
+          "n": 6,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "security_incident": {
+          "n": 4,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "sso_configuration": {
+          "n": 1,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "unclear_request": {
+          "n": 6,
+          "precision": 100.0,
+          "recall": 100.0
+        },
+        "webhook_issue": {
+          "n": 3,
+          "precision": 100.0,
+          "recall": 100.0
+        }
+      },
+      "macro_precision": 100.0,
+      "macro_recall": 100.0,
+      "accuracy": 100.0
+    },
+    "urgency": {
+      "per_class": {
+        "high": {
+          "n": 25,
+          "precision": 40.0,
+          "recall": 24.0
+        },
+        "low": {
+          "n": 20,
+          "precision": 33.3,
+          "recall": 10.0
+        },
+        "medium": {
+          "n": 35,
+          "precision": 42.4,
+          "recall": 71.4
+        }
+      },
+      "macro_precision": 38.6,
+      "macro_recall": 35.1,
+      "accuracy": 41.2
+    },
+    "retrieval_hit3": 83.0,
+    "retrieval_n": 53,
+    "latency_ms_p50": 2211,
+    "latency_ms_p95": 5164,
+    "processing_ms_p50": 1730,
+    "processing_ms_p95": 4883,
+    "nfr01_pass": false,
+    "stage_latency_ms": {
+      "classification": {
+        "n": 80,
+        "p50": 11,
+        "p95": 13
+      },
+      "retrieval": {
+        "n": 80,
+        "p50": 14,
+        "p95": 17
+      },
+      "generation": {
+        "n": 51,
+        "p50": 2455,
+        "p95": 5854
+      },
+      "validation": {
+        "n": 51,
+        "p50": 0,
+        "p95": 0
+      }
+    },
+    "provider_wait_ms_total": 30965,
+    "provider_requests": 47,
+    "generation_cache_hits": 0,
+    "citations": {
+      "generated_answers": 51,
+      "citations_resolve_in_code": 100.0,
+      "sent_answers": 49,
+      "sent_cited_ids_in_retrieved_set": 100.0,
+      "sent_cites_expected_doc": 94.4,
+      "sent_with_expected_docs": 36,
+      "hallucination_rate": null,
+      "note": "Citation validity is checked in code: every cited passage id must be in the set retrieved for that ticket. Agreement with expected_doc_ids is reported, not a gate (AS-03, AS-07: labels are per intent and follow past handling). Hallucination rate and human citation accuracy come from answer_review.csv (NFR-08)."
+    }
+  },
+  "governance": {
+    "tickets_in_input": 80,
+    "final_rows": 80,
+    "tickets_without_final": [],
+    "duplicate_final_rows": 0,
+    "rows_with_empty_required_field": 0,
+    "decision_log_coverage_ok": true,
+    "rows_by_stage": {
+      "ingest": 80,
+      "classification": 80,
+      "retrieval": 80,
+      "routing": 80,
+      "generation": 51,
+      "validation": 51,
+      "final": 80
+    },
+    "route_rule_activations": {
+      "must_escalate_intent": 20,
+      "no_retrieval_hit": 9
+    },
+    "validate_checks": {
+      "citations": {
+        "pass": 51,
+        "block": 0,
+        "warn": 0
+      },
+      "commitments": {
+        "pass": 51,
+        "block": 0,
+        "warn": 0
+      },
+      "confidence_floor": {
+        "pass": 51,
+        "block": 0,
+        "warn": 0
+      },
+      "grounding": {
+        "pass": 49,
+        "block": 2,
+        "warn": 0
+      },
+      "integrity": {
+        "pass": 51,
+        "block": 0,
+        "warn": 0
+      },
+      "private_data": {
+        "pass": 51,
+        "block": 0,
+        "warn": 0
+      },
+      "style": {
+        "pass": 40,
+        "block": 0,
+        "warn": 11
+      }
+    },
+    "validate_blocks": 2,
+    "private_data_detections": 0,
+    "unsafe_automatic_answers": 0,
+    "degraded_mode_tickets": 0,
+    "errors": {
+      "none": 80
+    }
+  },
+  "segments": {
+    "tier": {
+      "groups": {
+        "business": {
+          "n": 30,
+          "auto": 22,
+          "auto_rate": 73.3,
+          "escalation_rate": 26.7,
+          "auto_rate_eligible": 76.2,
+          "eligible_n": 21,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 81.8,
+          "retrieval_n": 22,
+          "sent_cites_expected_doc": 100.0,
+          "sent_with_expected_docs": 16
+        },
+        "enterprise": {
+          "n": 8,
+          "auto": 4,
+          "auto_rate": 50.0,
+          "escalation_rate": 50.0,
+          "auto_rate_eligible": 66.7,
+          "eligible_n": 6,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 83.3,
+          "retrieval_n": 6,
+          "sent_cites_expected_doc": 75.0,
+          "sent_with_expected_docs": 4
+        },
+        "standard": {
+          "n": 42,
+          "auto": 23,
+          "auto_rate": 54.8,
+          "escalation_rate": 45.2,
+          "auto_rate_eligible": 72.7,
+          "eligible_n": 22,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 84.0,
+          "retrieval_n": 25,
+          "sent_cites_expected_doc": 93.8,
+          "sent_with_expected_docs": 16
+        }
+      },
+      "gap_pts": {
+        "auto_rate_eligible": 3.5,
+        "retrieval_hit3": 2.2
+      },
+      "pass": true
+    },
+    "fluency": {
+      "groups": {
+        "fluent": {
+          "n": 61,
+          "auto": 38,
+          "auto_rate": 62.3,
+          "escalation_rate": 37.7,
+          "auto_rate_eligible": 75.6,
+          "eligible_n": 41,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 84.1,
+          "retrieval_n": 44,
+          "sent_cites_expected_doc": 93.5,
+          "sent_with_expected_docs": 31
+        },
+        "non_fluent": {
+          "n": 19,
+          "auto": 11,
+          "auto_rate": 57.9,
+          "escalation_rate": 42.1,
+          "auto_rate_eligible": 62.5,
+          "eligible_n": 8,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 77.8,
+          "retrieval_n": 9,
+          "sent_cites_expected_doc": 100.0,
+          "sent_with_expected_docs": 5
+        }
+      },
+      "gap_pts": {
+        "auto_rate_eligible": 13.1,
+        "retrieval_hit3": 6.3
+      },
+      "pass": false
+    },
+    "channel": {
+      "groups": {
+        "chat": {
+          "n": 22,
+          "auto": 10,
+          "auto_rate": 45.5,
+          "escalation_rate": 54.5,
+          "auto_rate_eligible": 53.8,
+          "eligible_n": 13,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 46.2,
+          "retrieval_n": 13,
+          "sent_cites_expected_doc": 85.7,
+          "sent_with_expected_docs": 7
+        },
+        "docs_comment": {
+          "n": 16,
+          "auto": 11,
+          "auto_rate": 68.8,
+          "escalation_rate": 31.2,
+          "auto_rate_eligible": 87.5,
+          "eligible_n": 8,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 90.0,
+          "retrieval_n": 10,
+          "sent_cites_expected_doc": 100.0,
+          "sent_with_expected_docs": 7
+        },
+        "email": {
+          "n": 31,
+          "auto": 21,
+          "auto_rate": 67.7,
+          "escalation_rate": 32.3,
+          "auto_rate_eligible": 76.2,
+          "eligible_n": 21,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 95.5,
+          "retrieval_n": 22,
+          "sent_cites_expected_doc": 93.8,
+          "sent_with_expected_docs": 16
+        },
+        "forum": {
+          "n": 11,
+          "auto": 7,
+          "auto_rate": 63.6,
+          "escalation_rate": 36.4,
+          "auto_rate_eligible": 85.7,
+          "eligible_n": 7,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 100.0,
+          "retrieval_n": 8,
+          "sent_cites_expected_doc": 100.0,
+          "sent_with_expected_docs": 6
+        }
+      },
+      "gap_pts": {
+        "auto_rate_eligible": 33.7,
+        "retrieval_hit3": 53.8
+      },
+      "pass": false
+    },
+    "length": {
+      "groups": {
+        "long (>28 words)": {
+          "n": 19,
+          "auto": 13,
+          "auto_rate": 68.4,
+          "escalation_rate": 31.6,
+          "auto_rate_eligible": 76.9,
+          "eligible_n": 13,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 85.7,
+          "retrieval_n": 14,
+          "sent_cites_expected_doc": 90.0,
+          "sent_with_expected_docs": 10
+        },
+        "short (<=28 words)": {
+          "n": 61,
+          "auto": 36,
+          "auto_rate": 59.0,
+          "escalation_rate": 41.0,
+          "auto_rate_eligible": 72.2,
+          "eligible_n": 36,
+          "intent_accuracy": 100.0,
+          "retrieval_hit3": 82.1,
+          "retrieval_n": 39,
+          "sent_cites_expected_doc": 96.2,
+          "sent_with_expected_docs": 26
+        }
+      },
+      "gap_pts": {
+        "auto_rate_eligible": 4.7,
+        "retrieval_hit3": 3.6
+      },
+      "pass": true
+    }
+  },
+  "calibration": [
+    {
+      "band": "0-0.5",
+      "n": 0
+    },
+    {
+      "band": "0.5-0.7",
+      "n": 0
+    },
+    {
+      "band": "0.7-0.9",
+      "n": 0
+    },
+    {
+      "band": "0.9-0.95",
+      "n": 0
+    },
+    {
+      "band": "0.95-1",
+      "n": 80,
+      "mean_confidence": 100.0,
+      "accuracy": 100.0,
+      "gap_pts": -0.0,
+      "pass": true
+    }
+  ],
+  "fr28": {
+    "all": {
+      "n": 80,
+      "auto": 49,
+      "auto_rate": 61.2,
+      "escalation_rate": 38.8,
+      "auto_rate_eligible": 73.5,
+      "eligible_n": 49,
+      "intent_accuracy": 100.0,
+      "retrieval_hit3": 83.0,
+      "retrieval_n": 53,
+      "sent_cites_expected_doc": 94.4,
+      "sent_with_expected_docs": 36
+    },
+    "unseen": {
+      "n": 35,
+      "auto": 21,
+      "auto_rate": 60.0,
+      "escalation_rate": 40.0,
+      "auto_rate_eligible": 77.8,
+      "eligible_n": 18,
+      "intent_accuracy": 100.0,
+      "retrieval_hit3": 80.0,
+      "retrieval_n": 20,
+      "sent_cites_expected_doc": 92.9,
+      "sent_with_expected_docs": 14
+    },
+    "repeats_dev_text": {
+      "n": 45,
+      "auto": 28,
+      "auto_rate": 62.2,
+      "escalation_rate": 37.8,
+      "auto_rate_eligible": 71.0,
+      "eligible_n": 31,
+      "intent_accuracy": 100.0,
+      "retrieval_hit3": 84.8,
+      "retrieval_n": 33,
+      "sent_cites_expected_doc": 95.5,
+      "sent_with_expected_docs": 22
+    }
+  },
   "tickets_in": 80,
+  "final_rows": 80,
+  "decision_log_coverage_ok": true,
+  "provider_requests": 47,
+  "generation_cache_hits": 0,
+  "degraded_mode_tickets": 0,
+  "latency_ms_p50": 2211,
+  "latency_ms_p95": 5164,
+  "by_action": {
+    "auto_respond": 49,
+    "escalate": 31
+  },
   "by_channel": {
     "forum": 11,
     "chat": 22,
     "docs_comment": 16,
     "email": 31
-  },
-  "by_action": {
-    "auto_respond": 49,
-    "escalate": 31
   },
   "by_route_action": {
     "auto_respond": 51,
@@ -21,12 +574,90 @@
   "by_error": {
     "none": 80
   },
-  "provider_requests": 47,
-  "generation_cache_hits": 4,
-  "degraded_mode_tickets": 0,
-  "latency_ms_p50": 2211,
-  "latency_ms_p95": 5164,
-  "decision_log_coverage_ok": true,
-  "final_rows": 80,
-  "note": "Skeleton report. Business, technical, governance and segment figures added with FR-27."
+  "consistency": {
+    "tickets": {
+      "log": 80,
+      "results": 80,
+      "match": true
+    },
+    "final actions": {
+      "log": {
+        "auto_respond": 49,
+        "escalate": 31
+      },
+      "results": {
+        "auto_respond": 49,
+        "escalate": 31
+      },
+      "match": true
+    },
+    "channels": {
+      "log": {
+        "forum": 11,
+        "chat": 22,
+        "docs_comment": 16,
+        "email": 31
+      },
+      "results": {
+        "forum": 11,
+        "chat": 22,
+        "docs_comment": 16,
+        "email": 31
+      },
+      "match": true
+    },
+    "route actions": {
+      "log": {
+        "auto_respond": 51,
+        "escalate": 29
+      },
+      "results": {
+        "auto_respond": 51,
+        "escalate": 29
+      },
+      "match": true
+    },
+    "final rule fired": {
+      "log": {
+        "none": 49,
+        "must_escalate_intent:unclear_request": 6,
+        "no_retrieval_hit": 9,
+        "must_escalate_intent:compliance_request": 1,
+        "must_escalate_intent:feature_request": 3,
+        "must_escalate_intent:data_residency": 6,
+        "guardrail:grounding": 2,
+        "must_escalate_intent:security_incident": 4
+      },
+      "results": {
+        "none": 49,
+        "must_escalate_intent:unclear_request": 6,
+        "no_retrieval_hit": 9,
+        "must_escalate_intent:compliance_request": 1,
+        "must_escalate_intent:feature_request": 3,
+        "must_escalate_intent:data_residency": 6,
+        "guardrail:grounding": 2,
+        "must_escalate_intent:security_incident": 4
+      },
+      "match": true
+    },
+    "errors": {
+      "log": {
+        "none": 80
+      },
+      "results": {
+        "none": 80
+      },
+      "match": true
+    },
+    "sent answers with a reply": {
+      "log": 49,
+      "results": 49,
+      "match": true
+    },
+    "Validate blocks": {
+      "log": 2,
+      "results": 2,
+      "match": true
+    }
+  }
 }
