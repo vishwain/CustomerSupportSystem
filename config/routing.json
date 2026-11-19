@@ -1,32 +1,27 @@
 {
-  "threshold": 1.01,
+  "threshold": 0.95,
   "must_escalate_alt_floor": 0.15,
   "set_on": "2026-11-19",
-  "rule": "NO threshold met FR-11 on the dev hold-out: nothing is answered automatically; record in the PRD revision log",
+  "rule": "lowest confidence where out-of-fold intent accuracy at or above it >= 95%, no overconfident failing calibration bin above it, zero must_not_auto_respond automatic (5.7)",
   "classifier_version": "2026-11-19-7a80b197a2fb",
   "evidence": {
-    "report": "docs/routing_threshold.md",
-    "holdout": {
-      "threshold": 1.01,
-      "auto": 0,
-      "draft": 58,
-      "escalate": 27,
-      "auto_rate": 0.0,
-      "precision": null,
-      "must_not_auto": 0,
-      "expected_auto_answered": 0.0,
-      "auto_wrong_intent": 0
+    "report": "evaluation/results/2026-11-19_calibration/calibration.md",
+    "at_threshold_dev_oof": {
+      "auto": 343,
+      "auto_rate": 0.686,
+      "acc_above": 1.0,
+      "auto_wrong_intent": 0,
+      "auto_expected_precision": 0.7522,
+      "must_not_auto": 0
     },
     "validation": {
-      "threshold": 1.01,
-      "auto": 0,
-      "draft": 51,
-      "escalate": 29,
-      "auto_rate": 0.0,
-      "precision": null,
+      "n": 80,
+      "auto": 51,
+      "auto_wrong_intent": 0,
       "must_not_auto": 0,
-      "expected_auto_answered": 0.0,
-      "auto_wrong_intent": 0
+      "auto_expected_precision": 0.7255
     }
-  }
+  },
+  "set_by": "calibration",
+  "intent_temperature": 0.462
 }

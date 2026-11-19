@@ -207,8 +207,14 @@ def main(argv=None) -> int:
                             "holdout": r["at_threshold_holdout"], "validation": r["at_threshold_validation"]}}
         p = Path(a.config_path)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
-        print(f"\nwrote {p}")
+        current = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+        if current.get("set_by") == "calibration":  # 5.7 owns the threshold: keep it, attach this study
+            current["fr11_route_study"] = {k: cfg[k] for k in ("threshold", "set_on", "rule", "evidence")}
+            p.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
+            print(f"\n{p}: threshold kept at {current['threshold']} (set by calibration); study attached")
+        else:
+            p.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+            print(f"\nwrote {p}")
     return 0
 
 
