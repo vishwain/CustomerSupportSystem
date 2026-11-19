@@ -1,0 +1,186 @@
+{
+  "run_date": "2026-11-19",
+  "holdout_n": 85,
+  "validation_n": 80,
+  "modes": {
+    "text": {
+      "holdout": {
+        "cutoff": 0.47,
+        "hit3": 0.8596,
+        "n": 57,
+        "hit3_subject": 0.8276,
+        "n_subject": 29,
+        "hit3_no_subject": 0.8929,
+        "n_no_subject": 28,
+        "gap_pts": 6.5,
+        "unanswerable_empty": 0.25,
+        "as01": true
+      },
+      "holdout_no_cutoff": {
+        "cutoff": 0.0,
+        "hit3": 0.9649,
+        "n": 57,
+        "hit3_subject": 0.9655,
+        "n_subject": 29,
+        "hit3_no_subject": 0.9643,
+        "n_no_subject": 28,
+        "gap_pts": 0.1,
+        "unanswerable_empty": 0.0
+      },
+      "validation": {
+        "cutoff": 0.47,
+        "hit3": 0.8302,
+        "n": 53,
+        "hit3_subject": 0.95,
+        "n_subject": 40,
+        "hit3_no_subject": 0.4615,
+        "n_no_subject": 13,
+        "gap_pts": 48.8,
+        "unanswerable_empty": 0.3333
+      },
+      "validation_unseen": {
+        "cutoff": 0.47,
+        "hit3": 0.8,
+        "n": 20,
+        "hit3_subject": 0.9375,
+        "n_subject": 16,
+        "hit3_no_subject": 0.25,
+        "n_no_subject": 4,
+        "gap_pts": 68.8,
+        "unanswerable_empty": 0.3333
+      },
+      "validation_chat": {
+        "cutoff": 0.47,
+        "hit3": 0.4615,
+        "n": 13,
+        "hit3_subject": null,
+        "n_subject": 0,
+        "hit3_no_subject": 0.4615,
+        "n_no_subject": 13,
+        "gap_pts": null,
+        "unanswerable_empty": 0.4444
+      },
+      "expanded_share_holdout": 0.0
+    },
+    "intent": {
+      "holdout": {
+        "cutoff": 0.57,
+        "hit3": 0.8596,
+        "n": 57,
+        "hit3_subject": 0.8276,
+        "n_subject": 29,
+        "hit3_no_subject": 0.8929,
+        "n_no_subject": 28,
+        "gap_pts": 6.5,
+        "unanswerable_empty": 0.4286,
+        "as01": true
+      },
+      "holdout_no_cutoff": {
+        "cutoff": 0.0,
+        "hit3": 1.0,
+        "n": 57,
+        "hit3_subject": 1.0,
+        "n_subject": 29,
+        "hit3_no_subject": 1.0,
+        "n_no_subject": 28,
+        "gap_pts": 0.0,
+        "unanswerable_empty": 0.0
+      },
+      "validation": {
+        "cutoff": 0.57,
+        "hit3": 0.8491,
+        "n": 53,
+        "hit3_subject": 0.825,
+        "n_subject": 40,
+        "hit3_no_subject": 0.9231,
+        "n_no_subject": 13,
+        "gap_pts": 9.8,
+        "unanswerable_empty": 0.3704
+      },
+      "validation_unseen": {
+        "cutoff": 0.57,
+        "hit3": 0.8,
+        "n": 20,
+        "hit3_subject": 0.75,
+        "n_subject": 16,
+        "hit3_no_subject": 1.0,
+        "n_no_subject": 4,
+        "gap_pts": 25.0,
+        "unanswerable_empty": 0.4
+      },
+      "validation_chat": {
+        "cutoff": 0.57,
+        "hit3": 0.9231,
+        "n": 13,
+        "hit3_subject": null,
+        "n_subject": 0,
+        "hit3_no_subject": 0.9231,
+        "n_no_subject": 13,
+        "gap_pts": null,
+        "unanswerable_empty": 0.4444
+      },
+      "expanded_share_holdout": 1.0
+    },
+    "intent_if_no_subject": {
+      "holdout": {
+        "cutoff": 0.51,
+        "hit3": 0.8772,
+        "n": 57,
+        "hit3_subject": 0.7931,
+        "n_subject": 29,
+        "hit3_no_subject": 0.9643,
+        "n_no_subject": 28,
+        "gap_pts": 17.1,
+        "unanswerable_empty": 0.25,
+        "as01": true
+      },
+      "holdout_no_cutoff": {
+        "cutoff": 0.0,
+        "hit3": 0.9825,
+        "n": 57,
+        "hit3_subject": 0.9655,
+        "n_subject": 29,
+        "hit3_no_subject": 1.0,
+        "n_no_subject": 28,
+        "gap_pts": 3.4,
+        "unanswerable_empty": 0.0
+      },
+      "validation": {
+        "cutoff": 0.51,
+        "hit3": 0.8868,
+        "n": 53,
+        "hit3_subject": 0.875,
+        "n_subject": 40,
+        "hit3_no_subject": 0.9231,
+        "n_no_subject": 13,
+        "gap_pts": 4.8,
+        "unanswerable_empty": 0.3704
+      },
+      "validation_unseen": {
+        "cutoff": 0.51,
+        "hit3": 0.85,
+        "n": 20,
+        "hit3_subject": 0.8125,
+        "n_subject": 16,
+        "hit3_no_subject": 1.0,
+        "n_no_subject": 4,
+        "gap_pts": 18.8,
+        "unanswerable_empty": 0.4
+      },
+      "validation_chat": {
+        "cutoff": 0.51,
+        "hit3": 0.9231,
+        "n": 13,
+        "hit3_subject": null,
+        "n_subject": 0,
+        "hit3_no_subject": 0.9231,
+        "n_no_subject": 13,
+        "gap_pts": null,
+        "unanswerable_empty": 0.4444
+      },
+      "expanded_share_holdout": 0.376
+    }
+  },
+  "chosen": "intent_if_no_subject",
+  "rule": "smallest subject / no-subject gap among modes within 1 point of the best hold-out hit rate at their own cutoff; ties to the simpler mode"
+}
