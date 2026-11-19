@@ -95,8 +95,8 @@ Build checkpoints (Build Specification):
 - [x] 5.11 Failure handling: no retrieval hit, provider timeout/outage, rate limit (backoff, cache), malformed input (A11)
 - [x] 5.12 Day 5: THE GATE: full unattended run over the validation set, one command, no intervention, every ticket answered or escalated, decisions reconcile with tickets (A9)
 - [x] 5.13 Metrics report auto-generated: volume, business, technical, governance figures (A10)
-- [ ] 5.14 Tests runnable with a single documented command and passing (A12)
-- [ ] 5.15 FastAPI interface (src/api.py) working
+- [x] 5.14 Tests runnable with a single documented command and passing (A12)
+- [x] 5.15 FastAPI interface (src/api.py) working
 - [ ] 5.16 README written and verified: fresh clone on another machine/dir follows steps to running (A1); .env.example complete
 - [ ] 5.17 Validation-set evaluation (80 tickets); record business + technical results honestly
 - [ ] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
