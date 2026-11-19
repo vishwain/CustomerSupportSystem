@@ -82,6 +82,7 @@ All commands run from the repo root with the virtual environment active.
 | --- | --- |
 | Tests (A12) | `python -m pytest tests -q` |
 | Ingest proof: one ticket per channel, normalised (A2) | `python -m src.ingest --input data/development_tickets.json` |
+| Retrieval experiment: compare chunking, pick cutoff, write `config/retrieval.json` (A4) | `python docs/retrieval_experiment.py --write-config` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
 The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
@@ -92,8 +93,13 @@ The decision log for each run is a SQLite file at `storage/runs/<run_id>/decisio
 `--storage` / `STORAGE_DIR` for the folder). If the repo sits in a synced folder (Google Drive, OneDrive) and SQLite
 reports locking errors, point `--storage` at a local folder.
 
-Current state: the pipeline after Ingest is a placeholder, so every accepted ticket escalates. Components plug
-into `run_pipeline` in `evaluation/harness.py`.
+Retrieval needs `config/retrieval.json`, which the experiment writes from measured data (chunking config,
+relevance cutoff, date set). The first run downloads `all-MiniLM-L6-v2` to the Hugging Face cache; the Chroma
+index is built in `storage/chroma` and rebuilt automatically when the docs, chunking or model change.
+Results and the reasoning are in `docs/retrieval_experiment.md`.
+
+Current state: Ingest and Retrieve run; Route is not built, so every accepted ticket escalates. Components plug
+into `run_pipeline` in `evaluation/harness.py`. `--no-retrieval` skips Retrieve for quick plumbing runs.
 
 ## Where data goes
 
