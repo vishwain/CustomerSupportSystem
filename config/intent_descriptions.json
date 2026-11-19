@@ -1,0 +1,28 @@
+{
+  "source": "prompts/build/classify_v1.txt (PR-02 intent list), copied so Retrieve does not read a prompt file",
+  "used_by": "src/retrieve.py build_query (5.13 follow-up: intent-expanded query, PRD Section 10)",
+  "descriptions": {
+    "account_access": "team members, roles, permissions, invitations, removing a person's access.",
+    "api_key_issue": "an API key fails (401, permission errors), key scopes, rotating or replacing a key.",
+    "api_usage_question": "how to use the API: pagination, large result sets, request patterns.",
+    "authentication_failure": "a person cannot sign in: invalid credentials, lockouts, MFA codes, a password change breaking logins.",
+    "billing_query": "an invoice, charges, the billing period, plan changes and proration.",
+    "compliance_request": "audit logs, access records, retention or evidence for an audit or a policy.",
+    "configuration_help": "environment variables, secrets, config values that differ between environments.",
+    "data_export": "exporting account data, export jobs queued or slow, expired download links.",
+    "data_residency": "where data is physically stored, regions, keeping data inside a country or region.",
+    "database_issue": "database connections, connection pools, database restores and backups.",
+    "deployment_failure": "a build or deployment fails: health checks, dependency resolution, automatic rollback after deploy.",
+    "feature_request": "the customer asks CloudServe to add or change a product capability.",
+    "integration_help": "connecting CI pipelines, monitoring tools, log forwarding.",
+    "onboarding": "getting started, a first deployment, migrating an existing application.",
+    "performance_degradation": "slow responses, rising latency, autoscaling not keeping up.",
+    "quota_or_overage": "usage allowance, spend caps, throttling tied to the plan allowance, overage charges.",
+    "rate_limit": "429 or \"too many requests\" errors, throughput dropping because of API limits.",
+    "rollback_request": "the customer wants to revert to an earlier release or revision.",
+    "security_incident": "suspected compromise, activity nobody recognises, breached credentials, a former employee still with access.",
+    "sso_configuration": "SAML or single sign-on setup, SSO user provisioning.",
+    "unclear_request": "too vague to tell what is wrong or what is being asked.",
+    "webhook_issue": "webhooks not arriving, retries, signature verification."
+  }
+}

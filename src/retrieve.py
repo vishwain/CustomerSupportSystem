@@ -206,6 +206,7 @@ class Retriever:
             raise ValueError(f"cutoff must be between 0 and 1, got {cutoff}")
         self.embedder, self.cfg, self.cutoff, self.top_k = embedder, cfg, float(cutoff), int(top_k)
         self.expand_docs = int(expand_docs)
+        self.query_mode = "text"
         self.docs_path = Path(docs_path)
         self.passages = chunk_docs(load_docs(self.docs_path), cfg)
         self._by_id = {p.passage_id: p for p in self.passages}
@@ -236,7 +237,11 @@ class Retriever:
 
     @property
     def model_version(self) -> str:
-        return f"{self.embedder.name}|{self.cfg.name}"
+        base = f"{self.embedder.name}|{self.cfg.name}"
+        return base if self.query_mode == "text" else f"{base}|query:{self.query_mode}"
+
+    def query_for(self, text: str, subject: str, intent: str | None) -> tuple[str, bool]:
+        return build_query(text, subject, intent, self.query_mode)
 
     def score_all(self, text: str) -> list[Passage]:
         """Every passage with its score, best first (analysis and the threshold study)."""
@@ -283,6 +288,36 @@ class Retriever:
         return RetrievalResult(kept, cands, cut, top, reason, context)
 
 
+# ----------------------------------------------------------------------------- query (intent-expanded)
+
+QUERY_MODES = ("text", "intent", "intent_if_no_subject")
+INTENT_DESCRIPTIONS_PATH = Path("config/intent_descriptions.json")
+_INTENT_DESC: dict[str, str] | None = None
+
+
+def intent_descriptions(path: str | Path = INTENT_DESCRIPTIONS_PATH) -> dict[str, str]:
+    global _INTENT_DESC
+    if _INTENT_DESC is None:
+        p = Path(path)
+        _INTENT_DESC = json.loads(p.read_text(encoding="utf-8"))["descriptions"] if p.exists() else {}
+    return _INTENT_DESC
+
+
+def build_query(text: str, subject: str, intent: str | None, mode: str = "text") -> tuple[str, bool]:
+    """PRD Section 10: the query is the ticket text plus the predicted intent's description.
+    mode "text": ticket text only. "intent": description first, then the text. "intent_if_no_subject":
+    only for tickets without a subject (every chat ticket), which otherwise lack a topic line.
+    The description goes first because the embedding model truncates long input.
+    Returns (query, expanded)."""
+    if mode not in QUERY_MODES:
+        raise ValueError(f"unknown query mode {mode!r}")
+    desc = intent_descriptions().get(intent or "")
+    use = desc and (mode == "intent" or (mode == "intent_if_no_subject" and not (subject or "").strip()))
+    if not use:
+        return text, False
+    return f"{intent.replace('_', ' ')}: {desc}\n\n{text}", True
+
+
 # ----------------------------------------------------------------------------- config + log
 
 @dataclass
@@ -292,6 +327,7 @@ class RetrievalConfig:
     top_k: int = 5
     embedding_model: str = DEFAULT_MODEL
     expand_docs: int = 2  # whole-article context for Generate (5.8 review); 0 turns it off
+    query_mode: str = "text"  # see build_query; set from data by docs/query_experiment.py
     set_on: str = ""
     rule: str = ""
     evidence: dict[str, Any] = field(default_factory=dict)
@@ -312,13 +348,15 @@ def build_retriever(config_path: str | Path = DEFAULT_CONFIG, embedder: Embedder
                     chroma_path: str | Path | None = None) -> Retriever:
     rc = load_config(config_path)
     emb = embedder or SentenceTransformerEmbedder(rc.embedding_model)
-    return Retriever(emb, CONFIGS[rc.chunking], rc.cutoff, rc.top_k,
-                     chroma_path=chroma_path or os.getenv("CHROMA_PATH", "./storage/chroma"),
-                     expand_docs=rc.expand_docs)
+    r = Retriever(emb, CONFIGS[rc.chunking], rc.cutoff, rc.top_k,
+                  chroma_path=chroma_path or os.getenv("CHROMA_PATH", "./storage/chroma"),
+                  expand_docs=rc.expand_docs)
+    r.query_mode = rc.query_mode
+    return r
 
 
 def log_retrieval(log, ticket_id: str, text: str, retriever: Retriever, result: RetrievalResult,
-                  latency_ms: int = 0) -> None:
+                  latency_ms: int = 0, query_intent: str | None = None) -> None:
     """One decision row for the retrieval stage. No hit is logged as error no_retrieval_hit (A11)."""
     log.write(
         ticket_id=ticket_id, stage="retrieval",
@@ -326,7 +364,8 @@ def log_retrieval(log, ticket_id: str, text: str, retriever: Retriever, result: 
         reason=result.reason, input_text=text,
         model_name=retriever.embedder.name, model_version=retriever.model_version,
         prediction={"returned": len(result.passages), "top_score": result.top_score,
-                    "context_added": [p.passage_id for p in result.context]},
+                    "context_added": [p.passage_id for p in result.context],
+                    "query_mode": getattr(retriever, "query_mode", "text"), "query_intent": query_intent},
         confidence=result.top_score, threshold_applied=result.cutoff,
         sources_used=[{"doc_id": p.doc_id, "passage_id": p.passage_id, "score": p.score}
                       for p in result.passages],

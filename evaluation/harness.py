@@ -150,9 +150,13 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
     res = None
     if comp.retriever is not None:
         t0 = time.perf_counter()
-        res = comp.retriever.retrieve(record.text)
+        intent = None if cls.failed else cls.intent
+        query, expanded = (comp.retriever.query_for(record.text, record.subject, intent)
+                           if hasattr(comp.retriever, "query_for") else (record.text, False))
+        res = comp.retriever.retrieve(query)
         log_retrieval(log, record.ticket_id, record.text, comp.retriever, res,
-                      latency_ms=int((time.perf_counter() - t0) * 1000))
+                      latency_ms=int((time.perf_counter() - t0) * 1000),
+                      query_intent=intent if expanded else None)
 
     decision = router.decide(record.text, cls, res)
     log_routing(log, record.ticket_id, record.text, decision, cls, router.cfg)

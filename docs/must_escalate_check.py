@@ -53,7 +53,9 @@ def route_rows(raw: list[dict[str, Any]], classifier, retriever, router: Router,
         if not rec.ok:
             continue
         cls = classifier.classify(rec, allow_llm=False)
-        res = retriever.retrieve(rec.text)
+        q = (retriever.query_for(rec.text, rec.subject, None if cls.failed else cls.intent)[0]
+             if hasattr(retriever, "query_for") else rec.text)
+        res = retriever.retrieve(q)
         d = router.decide(rec.text, cls, res)
         lab = t.get("labels", {})
         rows.append({
@@ -155,7 +157,8 @@ def oof_rows(dev_raw, retriever, router_off: Router, temperature: float, oof_fn)
         cls = Classification(classes[k], round(float(q[k]), 4),
                              [{"label": classes[i], "confidence": round(float(q[i]), 4)} for i in order[1:3]],
                              "medium", 0.0, [], "local", "oof", "oof", intent_distribution=dist)
-        d = router_off.decide(rec.text, cls, retriever.retrieve(rec.text))
+        q = retriever.query_for(rec.text, rec.subject, cls.intent)[0] if hasattr(retriever, "query_for") else rec.text
+        d = router_off.decide(rec.text, cls, retriever.retrieve(q))
         rows.append({"ticket_id": rec.ticket_id, "label": t["labels"]["intent"], "pred": cls.intent,
                      "conf": cls.intent_confidence, "rule_guard_off": "auto" if d.action == "auto_respond" else d.rule_fired,
                      "layers": router_off.layers(rec.text, cls)})
