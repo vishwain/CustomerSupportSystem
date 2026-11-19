@@ -86,7 +86,7 @@ All commands run from the repo root with the virtual environment active.
 
 | What | Command |
 | --- | --- |
-| Tests (A12) | `python -m pytest tests -q` |
+| Tests (A12) | `pytest` (see Tests below) |
 | Ingest proof: one ticket per channel, normalised (A2) | `python -m src.ingest --input data/development_tickets.json` |
 | Retrieval experiment: compare chunking, pick cutoff, write `config/retrieval.json` (A4) | `python docs/retrieval_experiment.py --write-config` |
 | Train the local classifier (also happens automatically on first use) (A3) | `python -m src.classify` |
@@ -139,6 +139,35 @@ Read the generated answers next to the ticket and the cited passage text:
 `python -m evaluation.show_answers --run-dir evaluation/results/<run-folder>`.
 
 Read a run's decision log as text: `python -m evaluation.show_log --run-dir evaluation/results/<run-folder>`.
+
+## Tests
+
+From the repo root, with the virtual environment active:
+
+```
+pytest
+```
+
+`pytest.ini` points at `tests/` and puts the repo root on the import path, so no other arguments are
+needed (`python -m pytest` works too). The suite takes about 20 seconds and needs **no API key, no network
+and no model download**: model calls go through scripted clients (`FakeClient`, scripted transports) and
+embeddings through a hashed `FakeEmbedder`. An autouse fixture in `tests/conftest.py` makes any real
+provider call or model load fail the test, and sets a dummy key so a real key in `.env` is never used.
+
+What the A12 areas are covered by (`tests/test_a12.py` has one end-to-end test per area; the other files
+go deeper):
+
+| Area | Tests |
+| --- | --- |
+| Ingest normalisation, each channel | `test_a12.py::test_ingest_normalises_each_channel`, `test_ingest.py` |
+| Routing rule incl. must_not_auto_respond | `test_a12.py::test_must_not_auto_respond_class_escalates_with_no_model_call`, `test_route.py`, `test_must_escalate_check.py` |
+| A guardrail that blocks | `test_a12.py::test_guardrail_blocks_private_data_and_nothing_is_sent`, `test_guardrails.py` |
+| Failure handling | `test_a12.py::test_provider_timeout_escalates_with_reason_and_log_row`, `test_failures.py`, `test_llm.py` |
+| Citation resolution | `test_a12.py::test_citations_resolve_to_retrieved_passages`, `test_generate.py` |
+| Decision-log coverage | `test_a12.py::test_every_ticket_has_exactly_one_final_row`, `test_logging_store.py`, `test_gate_check.py` |
+
+Useful variants: `pytest tests/test_a12.py` (the six areas only), `pytest -k route` (one area),
+`pytest -x` (stop at the first failure).
 
 ## Where data goes
 
