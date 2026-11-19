@@ -349,6 +349,61 @@ def registry_count(registry: Path, input_sha: str) -> int:
         return sum(1 for line in f if line.strip() and json.loads(line).get("input_sha256") == input_sha)
 
 
+def build_components(no_llm: bool = False, no_models: bool = False, no_cache: bool = False,
+                     retrieval_config: str = "config/retrieval.json", routing_config: str = "config/routing.json",
+                     say=None) -> Components:
+    """Load every component once. A component that cannot load is left out and logged; the pipeline then
+    escalates what it cannot handle (A11). Shared by the harness and the API (src/api.py)."""
+    def _say(msg, warn=False):
+        print(msg, file=sys.stderr if warn else sys.stdout)
+    say = say or _say
+    from src.route import RoutingConfig
+    comp = Components(router=Router(RoutingConfig.load(routing_config)))
+    say(f"routing: threshold {comp.router.cfg.threshold} from {comp.router.cfg.source}")
+    comp.messages = load_messages()
+    llm_client = None
+    if no_cache:
+        os.environ["LLM_CACHE"] = "0"
+    if not no_llm:
+        try:
+            from src.llm import client_from_env
+            llm_client = client_from_env()
+            comp.generator = Generator(llm_client)
+            say(f"generate: {comp.generator.prompt.version} on {llm_client.model}")
+        except Exception as e:  # noqa: BLE001 - no key or paid model id: run continues, nothing generated
+            say(f"WARNING: Generate unavailable ({type(e).__name__}: {e}); auto/draft tickets escalate",
+                warn=True)
+    if not no_models:
+        try:
+            emb = SentenceTransformerEmbedder()
+        except Exception as e:  # noqa: BLE001
+            emb = None
+            say(f"WARNING: embedding model unavailable ({type(e).__name__}: {e})", warn=True)
+        if emb is not None:
+            try:
+                comp.classifier = build_classifier(emb, use_llm_fallback=llm_client is not None, llm_client=llm_client)
+                say(f"classifier: {comp.classifier.local.name} {comp.classifier.local.version}"
+                      f"{' + PR-02 fallback' if comp.classifier.llm else ''}")
+            except Exception as e:  # noqa: BLE001 - every ticket then escalates as classification_failed
+                say(f"WARNING: classifier unavailable ({type(e).__name__}: {e})", warn=True)
+            if comp.generator is not None:
+                try:
+                    gcfg = GuardrailConfig.load()
+                    comp.validator = Validator(emb, gcfg, prompt_system=comp.generator.prompt.system)
+                    say(f"validate: grounding floor {gcfg.grounding_floor} from {gcfg.source}"
+                          + ("" if gcfg.grounding_floor is not None else " (NOT SET: every answer will be blocked)"))
+                except Exception as e:  # noqa: BLE001 - no validator: nothing is sent
+                    say(f"WARNING: Validate unavailable ({type(e).__name__}: {e}); nothing will be sent",
+                        warn=True)
+            try:
+                comp.retriever = build_retriever(retrieval_config, embedder=emb)
+                say(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
+            except Exception as e:  # noqa: BLE001 - no passages: Route escalates
+                say(f"WARNING: retrieval unavailable ({type(e).__name__}: {e})", warn=True)
+
+    return comp
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Run every ticket in a file through the system, unattended.")
     ap.add_argument("--input", required=True, help="ticket file: .json list or .jsonl")
@@ -393,50 +448,8 @@ def main(argv: list[str] | None = None) -> int:
     registry = storage / "run_registry.jsonl"
     prior_runs = registry_count(registry, input_sha)
 
-    from src.route import RoutingConfig
-    comp = Components(router=Router(RoutingConfig.load(a.routing_config)))
-    print(f"routing: threshold {comp.router.cfg.threshold} from {comp.router.cfg.source}")
-    comp.messages = load_messages()
-    llm_client = None
-    if a.no_cache:
-        os.environ["LLM_CACHE"] = "0"
-    if not a.no_llm:
-        try:
-            from src.llm import client_from_env
-            llm_client = client_from_env()
-            comp.generator = Generator(llm_client)
-            print(f"generate: {comp.generator.prompt.version} on {llm_client.model}")
-        except Exception as e:  # noqa: BLE001 - no key or paid model id: run continues, nothing generated
-            print(f"WARNING: Generate unavailable ({type(e).__name__}: {e}); auto/draft tickets escalate",
-                  file=sys.stderr)
-    if not a.no_models:
-        try:
-            emb = SentenceTransformerEmbedder()
-        except Exception as e:  # noqa: BLE001
-            emb = None
-            print(f"WARNING: embedding model unavailable ({type(e).__name__}: {e})", file=sys.stderr)
-        if emb is not None:
-            try:
-                comp.classifier = build_classifier(emb, use_llm_fallback=llm_client is not None, llm_client=llm_client)
-                print(f"classifier: {comp.classifier.local.name} {comp.classifier.local.version}"
-                      f"{' + PR-02 fallback' if comp.classifier.llm else ''}")
-            except Exception as e:  # noqa: BLE001 - every ticket then escalates as classification_failed
-                print(f"WARNING: classifier unavailable ({type(e).__name__}: {e})", file=sys.stderr)
-            if comp.generator is not None:
-                try:
-                    gcfg = GuardrailConfig.load()
-                    comp.validator = Validator(emb, gcfg, prompt_system=comp.generator.prompt.system)
-                    print(f"validate: grounding floor {gcfg.grounding_floor} from {gcfg.source}"
-                          + ("" if gcfg.grounding_floor is not None else " (NOT SET: every answer will be blocked)"))
-                except Exception as e:  # noqa: BLE001 - no validator: nothing is sent
-                    print(f"WARNING: Validate unavailable ({type(e).__name__}: {e}); nothing will be sent",
-                          file=sys.stderr)
-            try:
-                comp.retriever = build_retriever(a.retrieval_config, embedder=emb)
-                print(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
-            except Exception as e:  # noqa: BLE001 - no passages: Route escalates
-                print(f"WARNING: retrieval unavailable ({type(e).__name__}: {e})", file=sys.stderr)
-
+    comp = build_components(no_llm=a.no_llm, no_models=a.no_models, no_cache=a.no_cache,
+                            retrieval_config=a.retrieval_config, routing_config=a.routing_config)
     comp.private_terms = private_terms_for(records)
     log = DecisionLog(db_path, run_id)
     log.start_run(in_path.name, input_sha, notes=HARNESS_VERSION)
