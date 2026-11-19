@@ -1,0 +1,616 @@
+{
+  "run_date": "2026-11-19",
+  "config": "config/routing.json",
+  "threshold": 0.95,
+  "floor_in_config": 0.0063,
+  "must_escalate_intents": [
+    "security_incident",
+    "compliance_request",
+    "data_residency",
+    "feature_request",
+    "unclear_request"
+  ],
+  "dev_holdout": {
+    "n": 85,
+    "coverage": {
+      "security_incident": {
+        "n": 4,
+        "escalated": 4,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:security_incident": 4
+        },
+        "caught_by_intent_rule": 4,
+        "caught_by_risk_terms": 4,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "compliance_request": {
+        "n": 3,
+        "escalated": 3,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:compliance_request": 3
+        },
+        "caught_by_intent_rule": 3,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "data_residency": {
+        "n": 5,
+        "escalated": 5,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:data_residency": 5
+        },
+        "caught_by_intent_rule": 5,
+        "caught_by_risk_terms": 3,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "feature_request": {
+        "n": 7,
+        "escalated": 7,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:feature_request": 7
+        },
+        "caught_by_intent_rule": 7,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "unclear_request": {
+        "n": 3,
+        "escalated": 3,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:unclear_request": 3
+        },
+        "caught_by_intent_rule": 3,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      }
+    },
+    "must_auto_or_draft": [],
+    "floor_table": [
+      {
+        "floor": 0.001,
+        "would_be_auto": 58,
+        "escalated_by_guard": 4,
+        "cost": 0.069,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": [
+          "DEV-0156",
+          "DEV-0222",
+          "DEV-0269",
+          "DEV-0399"
+        ]
+      },
+      {
+        "floor": 0.002,
+        "would_be_auto": 58,
+        "escalated_by_guard": 4,
+        "cost": 0.069,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": [
+          "DEV-0156",
+          "DEV-0222",
+          "DEV-0269",
+          "DEV-0399"
+        ]
+      },
+      {
+        "floor": 0.005,
+        "would_be_auto": 58,
+        "escalated_by_guard": 4,
+        "cost": 0.069,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": [
+          "DEV-0156",
+          "DEV-0222",
+          "DEV-0269",
+          "DEV-0399"
+        ]
+      },
+      {
+        "floor": 0.01,
+        "would_be_auto": 58,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.02,
+        "would_be_auto": 58,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.05,
+        "would_be_auto": 58,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.1,
+        "would_be_auto": 58,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.15,
+        "would_be_auto": 58,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      }
+    ]
+  },
+  "validation": {
+    "n": 80,
+    "coverage": {
+      "security_incident": {
+        "n": 4,
+        "escalated": 4,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:security_incident": 4
+        },
+        "caught_by_intent_rule": 4,
+        "caught_by_risk_terms": 4,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "compliance_request": {
+        "n": 1,
+        "escalated": 1,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:compliance_request": 1
+        },
+        "caught_by_intent_rule": 1,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "data_residency": {
+        "n": 6,
+        "escalated": 6,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:data_residency": 6
+        },
+        "caught_by_intent_rule": 6,
+        "caught_by_risk_terms": 5,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "feature_request": {
+        "n": 3,
+        "escalated": 3,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:feature_request": 3
+        },
+        "caught_by_intent_rule": 3,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      },
+      "unclear_request": {
+        "n": 6,
+        "escalated": 6,
+        "not_escalated": [],
+        "rules": {
+          "must_escalate_intent:unclear_request": 6
+        },
+        "caught_by_intent_rule": 6,
+        "caught_by_risk_terms": 0,
+        "caught_by_dispute_list": 0,
+        "caught_by_alternative_guard": 0
+      }
+    },
+    "must_auto_or_draft": [],
+    "floor_table": [
+      {
+        "floor": 0.001,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.002,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.005,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.01,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.02,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.05,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.1,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.15,
+        "would_be_auto": 51,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 0,
+        "drafts_escalated": 0,
+        "examples": []
+      }
+    ]
+  },
+  "dev_oof": {
+    "n": 500,
+    "floor_table": [
+      {
+        "floor": 0.001,
+        "would_be_auto": 343,
+        "escalated_by_guard": 11,
+        "cost": 0.0321,
+        "drafts": 11,
+        "drafts_escalated": 8,
+        "examples": [
+          "DEV-0079",
+          "DEV-0093",
+          "DEV-0111",
+          "DEV-0147",
+          "DEV-0222"
+        ]
+      },
+      {
+        "floor": 0.002,
+        "would_be_auto": 343,
+        "escalated_by_guard": 7,
+        "cost": 0.0204,
+        "drafts": 11,
+        "drafts_escalated": 8,
+        "examples": [
+          "DEV-0079",
+          "DEV-0147",
+          "DEV-0222",
+          "DEV-0269",
+          "DEV-0297"
+        ]
+      },
+      {
+        "floor": 0.005,
+        "would_be_auto": 343,
+        "escalated_by_guard": 6,
+        "cost": 0.0175,
+        "drafts": 11,
+        "drafts_escalated": 5,
+        "examples": [
+          "DEV-0147",
+          "DEV-0222",
+          "DEV-0269",
+          "DEV-0297",
+          "DEV-0404"
+        ]
+      },
+      {
+        "floor": 0.01,
+        "would_be_auto": 343,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 11,
+        "drafts_escalated": 5,
+        "examples": []
+      },
+      {
+        "floor": 0.02,
+        "would_be_auto": 343,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 11,
+        "drafts_escalated": 3,
+        "examples": []
+      },
+      {
+        "floor": 0.05,
+        "would_be_auto": 343,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 11,
+        "drafts_escalated": 1,
+        "examples": []
+      },
+      {
+        "floor": 0.1,
+        "would_be_auto": 343,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 11,
+        "drafts_escalated": 0,
+        "examples": []
+      },
+      {
+        "floor": 0.15,
+        "would_be_auto": 343,
+        "escalated_by_guard": 0,
+        "cost": 0.0,
+        "drafts": 11,
+        "drafts_escalated": 0,
+        "examples": []
+      }
+    ]
+  },
+  "floor_pick": {
+    "floor": 0.01,
+    "n": 401,
+    "escalated": 0,
+    "cost": 0.0,
+    "cost_upper_95": 0.0095,
+    "mass_percentiles": {
+      "p50": 0.0,
+      "p90": 0.0001,
+      "p95": 0.0003,
+      "p99": 0.0074,
+      "max": 0.0088
+    },
+    "rule": "smallest 1-2-5 value above the largest must mass of any safe-labelled would-be automatic answer in the dev data (out-of-fold on all 500, plus the deployed model on the hold-out); validation is the check",
+    "inert_above": 0.05,
+    "dev_holdout_check": {
+      "would_be_auto": 58,
+      "escalated": 0,
+      "cost_upper_95": 0.0621,
+      "drafts": 0,
+      "drafts_escalated": 0
+    },
+    "validation_check": {
+      "would_be_auto": 51,
+      "escalated": 0,
+      "cost_upper_95": 0.07,
+      "drafts": 0,
+      "drafts_escalated": 0
+    }
+  },
+  "fixtures": [
+    {
+      "ticket_id": "MUST-SEC-01",
+      "label": "security_incident",
+      "kind": "direct",
+      "pred": "security_incident",
+      "conf": 1.0,
+      "action": "escalate",
+      "rule": "must_escalate_intent:security_incident",
+      "mass": 0.0,
+      "risk_terms": "security",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-SEC-02",
+      "label": "security_incident",
+      "kind": "mixed: webhook question with a leaked secret",
+      "pred": "webhook_issue",
+      "conf": 0.9614,
+      "action": "escalate",
+      "rule": "risk_terms:security",
+      "mass": 0.0091,
+      "risk_terms": "security",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-SEC-03",
+      "label": "security_incident",
+      "kind": "disguised: permissions question, no security keyword",
+      "pred": "security_incident",
+      "conf": 0.6891,
+      "action": "escalate",
+      "rule": "must_escalate_intent:security_incident",
+      "mass": 0.0001,
+      "risk_terms": null,
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-CMP-01",
+      "label": "compliance_request",
+      "kind": "direct",
+      "pred": "compliance_request",
+      "conf": 1.0,
+      "action": "escalate",
+      "rule": "must_escalate_intent:compliance_request",
+      "mass": 0.0,
+      "risk_terms": "legal",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-CMP-02",
+      "label": "compliance_request",
+      "kind": "mixed: data export with a GDPR request",
+      "pred": "data_export",
+      "conf": 0.3465,
+      "action": "escalate",
+      "rule": "risk_terms:legal",
+      "mass": 0.5651,
+      "risk_terms": "legal",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-CMP-03",
+      "label": "compliance_request",
+      "kind": "mixed: retention question for a lawyer",
+      "pred": "compliance_request",
+      "conf": 0.957,
+      "action": "escalate",
+      "rule": "must_escalate_intent:compliance_request",
+      "mass": 0.026,
+      "risk_terms": "legal",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-RES-01",
+      "label": "data_residency",
+      "kind": "direct",
+      "pred": "data_residency",
+      "conf": 1.0,
+      "action": "escalate",
+      "rule": "must_escalate_intent:data_residency",
+      "mass": 0.0,
+      "risk_terms": "residency",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-RES-02",
+      "label": "data_residency",
+      "kind": "mixed: backup restore with a residency condition",
+      "pred": "data_residency",
+      "conf": 0.9967,
+      "action": "escalate",
+      "rule": "must_escalate_intent:data_residency",
+      "mass": 0.0004,
+      "risk_terms": "residency",
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-FEA-01",
+      "label": "feature_request",
+      "kind": "direct",
+      "pred": "feature_request",
+      "conf": 1.0,
+      "action": "escalate",
+      "rule": "must_escalate_intent:feature_request",
+      "mass": 0.0,
+      "risk_terms": null,
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-FEA-02",
+      "label": "feature_request",
+      "kind": "disguised: rate-limit wording, no feature keyword",
+      "pred": "rate_limit",
+      "conf": 0.8539,
+      "action": "escalate",
+      "rule": "must_escalate_alternative:feature_request",
+      "mass": 0.0349,
+      "risk_terms": null,
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-UNC-01",
+      "label": "unclear_request",
+      "kind": "direct",
+      "pred": "unclear_request",
+      "conf": 0.9999,
+      "action": "escalate",
+      "rule": "must_escalate_intent:unclear_request",
+      "mass": 0.0,
+      "risk_terms": null,
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-UNC-02",
+      "label": "unclear_request",
+      "kind": "direct",
+      "pred": "unclear_request",
+      "conf": 0.9998,
+      "action": "escalate",
+      "rule": "must_escalate_intent:unclear_request",
+      "mass": 0.0,
+      "risk_terms": null,
+      "dispute": false
+    },
+    {
+      "ticket_id": "MUST-DSP-01",
+      "label": "billing_dispute",
+      "kind": "direct",
+      "pred": "billing_query",
+      "conf": 0.8191,
+      "action": "escalate",
+      "rule": "billing_dispute",
+      "mass": 0.0169,
+      "risk_terms": null,
+      "dispute": true
+    },
+    {
+      "ticket_id": "MUST-DSP-02",
+      "label": "billing_dispute",
+      "kind": "direct (quota)",
+      "pred": "quota_or_overage",
+      "conf": 0.9396,
+      "action": "escalate",
+      "rule": "billing_dispute",
+      "mass": 0.0,
+      "risk_terms": null,
+      "dispute": true
+    },
+    {
+      "ticket_id": "MUST-DSP-03",
+      "label": "billing_dispute",
+      "kind": "disguised: performance wording with a compensation claim",
+      "pred": "performance_degradation",
+      "conf": 0.5737,
+      "action": "escalate",
+      "rule": "billing_dispute",
+      "mass": 0.0201,
+      "risk_terms": null,
+      "dispute": true
+    }
+  ],
+  "fixtures_all_escalated": true
+}
