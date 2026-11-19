@@ -479,13 +479,14 @@ def log_classification(log, ticket_id: str, text: str, c: Classification) -> Non
     )
 
 
-def build_classifier(embedder, use_llm_fallback: bool = True) -> Classifier:
+def build_classifier(embedder, use_llm_fallback: bool = True, llm_client=None) -> Classifier:
+    """llm_client: share one client with Generate so request pacing and the circuit breaker are shared."""
     local = LocalClassifier(embedder).load_or_train()
     llm = None
     if use_llm_fallback:
         try:
             from src.llm import client_from_env
-            llm = LLMClassifier(client_from_env())
+            llm = LLMClassifier(llm_client or client_from_env())
         except Exception as e:  # noqa: BLE001 - no key or no model id: run without the fallback
             print(f"WARNING: PR-02 fallback disabled ({e})", file=sys.stderr)
     return Classifier(local, llm)

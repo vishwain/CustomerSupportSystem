@@ -7,7 +7,9 @@
 # {{passages}} = one block per retrieved passage, in rank order:
 #   [<passage_id>] <article title> / <section heading>
 #   <section text>
-# passage_id = doc_id + "#" + section slug: symptoms, common-causes, resolution, notes (e.g. DOC-API-001#resolution).
+# passage_id is the retrieved passage's id. Since the 5.2 chunking decision (800/120 chunks, PRD revision FR-08) it is
+#   doc_id + "#c" + two-digit chunk number (e.g. DOC-API-001#c01); <section heading> is the section the chunk starts in.
+#   The section-style ids in the examples below are illustrations only. Header-only change: version stays 1.0.
 # Code never passes customer_name, customer_id, tier, region, fluency, labels or history (FR-03).
 # Code, not the model, adds the greeting, the automated label and the "Sources:" line (FR-18).
 # Route never calls this prompt when no passage passed the cutoff; code escalates with the holding message instead (FR-09, FR-11, FR-16).

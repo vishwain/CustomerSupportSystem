@@ -66,7 +66,9 @@ class Passage:
     @property
     def reviewed_label(self) -> str:  # FR-10
         n = self.last_reviewed_days_ago
-        return "review date unknown" if n is None else f"reviewed {n} days ago"
+        if n is None:
+            return "review date unknown"
+        return "reviewed today" if n == 0 else ("reviewed 1 day ago" if n == 1 else f"reviewed {n} days ago")
 
     def public(self) -> dict[str, Any]:
         d = asdict(self)
@@ -170,6 +172,14 @@ class RetrievalResult:
     cutoff: float
     top_score: float
     reason: str
+    # Other chunks of the articles that passed the cutoff, so Generate sees whole articles (a chunk can end
+    # at a bare "## Resolution" heading). Never counted as hits: Route and the retrieval metrics use
+    # `passages` only. Citable, because they were retrieved for this ticket and are logged.
+    context: list[Passage] = field(default_factory=list)
+
+    @property
+    def for_generation(self) -> list[Passage]:
+        return self.passages + self.context
 
     @property
     def hit(self) -> bool:
@@ -188,12 +198,14 @@ class Retriever:
     """Chroma index over one chunking config. Rebuilt automatically when docs, config or model change."""
 
     def __init__(self, embedder: Embedder, cfg: ChunkConfig, cutoff: float, top_k: int = 5,
-                 docs_path: str | Path = DEFAULT_DOCS, chroma_path: str | Path | None = None):
+                 docs_path: str | Path = DEFAULT_DOCS, chroma_path: str | Path | None = None,
+                 expand_docs: int = 0):
         import chromadb
 
         if not 0.0 <= cutoff <= 1.0:
             raise ValueError(f"cutoff must be between 0 and 1, got {cutoff}")
         self.embedder, self.cfg, self.cutoff, self.top_k = embedder, cfg, float(cutoff), int(top_k)
+        self.expand_docs = int(expand_docs)
         self.docs_path = Path(docs_path)
         self.passages = chunk_docs(load_docs(self.docs_path), cfg)
         self._by_id = {p.passage_id: p for p in self.passages}
@@ -245,7 +257,8 @@ class Retriever:
 
     def retrieve(self, text: str, cutoff: float | None = None) -> RetrievalResult:
         cut = self.cutoff if cutoff is None else float(cutoff)
-        cands = self._query(text, self.top_k)
+        scored = self._query(text, len(self.passages) if self.expand_docs else self.top_k)
+        cands = scored[: self.top_k]
         kept = [p for p in cands if p.score >= cut]
         top = cands[0].score if cands else 0.0
         if kept:
@@ -255,7 +268,19 @@ class Retriever:
             reason = f"No passage at or above cutoff {cut:.2f}; best was {cands[0].passage_id} at {top:.2f}."
         else:
             reason = "Empty query text; nothing searched."
-        return RetrievalResult(kept, cands, cut, top, reason)
+        context: list[Passage] = []
+        if kept and self.expand_docs:
+            docs: list[str] = []
+            for p in kept:
+                if p.doc_id not in docs:
+                    docs.append(p.doc_id)
+            have = {p.passage_id for p in kept}
+            for doc in docs[: self.expand_docs]:
+                context += sorted((p for p in scored if p.doc_id == doc and p.passage_id not in have),
+                                  key=lambda p: p.passage_id)
+            if context:
+                reason += f" Context added from the same article(s): {', '.join(p.passage_id for p in context)}."
+        return RetrievalResult(kept, cands, cut, top, reason, context)
 
 
 # ----------------------------------------------------------------------------- config + log
@@ -266,6 +291,7 @@ class RetrievalConfig:
     cutoff: float
     top_k: int = 5
     embedding_model: str = DEFAULT_MODEL
+    expand_docs: int = 2  # whole-article context for Generate (5.8 review); 0 turns it off
     set_on: str = ""
     rule: str = ""
     evidence: dict[str, Any] = field(default_factory=dict)
@@ -287,7 +313,8 @@ def build_retriever(config_path: str | Path = DEFAULT_CONFIG, embedder: Embedder
     rc = load_config(config_path)
     emb = embedder or SentenceTransformerEmbedder(rc.embedding_model)
     return Retriever(emb, CONFIGS[rc.chunking], rc.cutoff, rc.top_k,
-                     chroma_path=chroma_path or os.getenv("CHROMA_PATH", "./storage/chroma"))
+                     chroma_path=chroma_path or os.getenv("CHROMA_PATH", "./storage/chroma"),
+                     expand_docs=rc.expand_docs)
 
 
 def log_retrieval(log, ticket_id: str, text: str, retriever: Retriever, result: RetrievalResult,
@@ -298,7 +325,8 @@ def log_retrieval(log, ticket_id: str, text: str, retriever: Retriever, result: 
         action_taken="passages_found" if result.hit else "no_passages",
         reason=result.reason, input_text=text,
         model_name=retriever.embedder.name, model_version=retriever.model_version,
-        prediction={"returned": len(result.passages), "top_score": result.top_score},
+        prediction={"returned": len(result.passages), "top_score": result.top_score,
+                    "context_added": [p.passage_id for p in result.context]},
         confidence=result.top_score, threshold_applied=result.cutoff,
         sources_used=[{"doc_id": p.doc_id, "passage_id": p.passage_id, "score": p.score}
                       for p in result.passages],

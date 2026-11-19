@@ -16,6 +16,7 @@ Every prompt the system or its evaluation uses, with its version. The full regis
 | PR-01 | `specification/fr_to_spec_v1.txt` | Specification | 1.0 | FR-01 to FR-34 | No | First version, 18 Nov 2026 |
 | PR-02 | `build/classify_v1.txt` | Build | 1.0 | FR-04, FR-05 | **No.** Baseline and fallback. Default Classify is local (PRD 10.3) | First version, 18 Nov 2026 |
 | PR-03 | `build/generate_v1.txt` | Build | 1.0 | FR-15, FR-16, FR-17, FR-20 (+ fields for FR-07, FR-13, FR-14) | Yes. The only model call | First version, 18 Nov 2026. Two wording fixes before release from smoke run 1 |
+| PR-03 | `build/generate_v2.txt` | Build | 2.0 | FR-15, FR-16, FR-17, FR-20 (+ fields for FR-07, FR-13, FR-14) | Candidate. Runs if `config/generation.json` names it (set by `docs/generate_eval.py`) | 19 Nov 2026. From reading 9 validation answers: answers must give steps or checks, causes become checks, passage must match the symptom, subject and body both read, up to nine passages (whole articles), chunk-style ids in examples. No "already tried" or "outage" rules: those labels conflict across identical texts |
 | PR-04 | `build/json_repair_v1.txt` | Build | 1.0 | FR-15, FR-25 (10.6) | Yes, only after a parse or schema failure, at most once | First version, 18 Nov 2026 |
 | PR-05 | `review/requirement_review_v1.txt` | Review | 1.0 | All FRs (traceability) | No | First version, 18 Nov 2026 |
 | PR-06 | `evaluation/groundedness_judge_v1.txt` | Evaluation | 1.0 | NFR-08 | No (offline) | First version, 18 Nov 2026 |
@@ -29,7 +30,7 @@ Output schemas: `src/schemas/answer.json` (PR-03, PR-04), `src/schemas/classific
 - The text after a line that is exactly `### SYSTEM` is the system message. The text after a line that is exactly `### USER` is the user message. Split on those two lines only (anchored, whole line). The header itself mentions `### SYSTEM` inside quotes, so a plain `split("### SYSTEM")` breaks; this happened in the first smoke run.
 - Placeholders are `{{name}}`. After filling, no `{{` may remain.
 - Before filling, code removes every `<<<` and `>>>` from ticket text, passage text and model output (FR-17). Delimiters then cannot be forged.
-- Passage ids are `doc_id#section`, with section one of `symptoms`, `common-causes`, `resolution`, `notes` (the only four headings in `documentation.json`).
+- Passage ids are the retrieved passage ids: `doc_id#cNN` (800/120 chunks, PRD revision FR-08, 19 Nov 2026), e.g. `DOC-API-001#c01`. The section-style ids in PR-03's examples are illustrations; `src/schemas/answer.json` accepts both forms, and code checks every cited id against the passages retrieved for that ticket.
 - Each decision-log row records `prompt_version` as `PR-xx vX.Y` (FR-24, NFR-05).
 
 ## Versioning rule

@@ -43,7 +43,7 @@ def test_retrieve_ranks_and_carries_review_age(fake_embedder):
     assert res.passages[0].doc_id == "DOC-DEPLOY-001"
     scores = [p.score for p in res.passages]
     assert scores == sorted(scores, reverse=True)
-    assert res.passages[0].public()["reviewed_label"] == "reviewed 0 days ago"  # FR-10
+    assert res.passages[0].public()["reviewed_label"] == "reviewed today"  # FR-10 (all 29 articles have 0)
 
 
 def test_nothing_returned_when_no_passage_clears_cutoff(fake_embedder):
