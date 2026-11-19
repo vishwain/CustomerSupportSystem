@@ -1,0 +1,8 @@
+{
+  "adopted": true,
+  "intent_temperature": 0.462,
+  "fitted_temperature": 0.462,
+  "set_on": "2026-11-19",
+  "why": "T=0.462 adopted: dev hold-out ECE 0.039 -> 0.002, failing dev bins 4 -> 1",
+  "evidence": "evaluation/results/2026-11-19_calibration/calibration.md"
+}

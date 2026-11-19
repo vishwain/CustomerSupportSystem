@@ -45,6 +45,7 @@ INTENTS = (
 URGENCIES = ("high", "medium", "low")
 UNKNOWN = "unknown"
 SCHEMA_PATH = Path("src/schemas/classification.json")
+CALIBRATION_CONFIG = Path("config/calibration.json")
 LOCAL_NAME = "minilm-logreg"
 C_GRID = (0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0, 64.0)
 
@@ -87,6 +88,34 @@ def fallback(reason: str, error: str = "classifier_error", **kw: Any) -> Classif
     return Classification(UNKNOWN, 0.0, [], UNKNOWN, 0.0, [], "fallback",
                           kw.pop("model_name", "none"), kw.pop("model_version", "n/a"),
                           error=error, reason=reason, **kw)
+
+
+# ============================================================================ calibration (5.7)
+
+def apply_temperature(proba, temperature: float):
+    """Temperature scaling on probabilities: p_i^(1/T), renormalised. Same as softmax(logits / T).
+    T > 1 softens (less confident), T < 1 sharpens. T = 1 changes nothing. Ranking never changes."""
+    import numpy as np
+
+    p = np.clip(np.asarray(proba, dtype=float), 1e-12, 1.0)
+    if temperature == 1.0:
+        return p / p.sum(axis=-1, keepdims=True)
+    logp = np.log(p) / float(temperature)
+    logp -= logp.max(axis=-1, keepdims=True)
+    q = np.exp(logp)
+    return q / q.sum(axis=-1, keepdims=True)
+
+
+def load_temperature(path: str | Path = CALIBRATION_CONFIG) -> float:
+    """Intent temperature from config/calibration.json (written by docs/calibration.py). Missing = 1.0."""
+    p = Path(path)
+    if not p.exists():
+        return 1.0
+    d = json.loads(p.read_text(encoding="utf-8"))
+    t = float(d.get("intent_temperature", 1.0)) if d.get("adopted", False) else 1.0
+    if not 0.05 <= t <= 20:
+        raise ValueError(f"intent_temperature {t} out of range in {p}")
+    return t
 
 
 # ============================================================================ LLM output parsing
@@ -292,8 +321,10 @@ class LocalClassifier:
     """MiniLM embeddings + logistic regression. load_or_train() before use."""
 
     def __init__(self, embedder, dev_path: str | Path = "data/development_tickets.json",
-                 model_dir: str | Path = "storage/models"):
+                 model_dir: str | Path = "storage/models", temperature: float | None = None,
+                 calibration_path: str | Path = CALIBRATION_CONFIG):
         self.embedder = embedder
+        self.temperature = load_temperature(calibration_path) if temperature is None else float(temperature)
         self.dev_path = Path(dev_path)
         self.model_dir = Path(model_dir)
         self.name = LOCAL_NAME
@@ -401,12 +432,14 @@ class LocalClassifier:
             raise RuntimeError("local classifier not loaded")
         t0 = time.perf_counter()
         X = self.embedder.encode([t.text])
-        i_lab, i_conf, i_alts = self._top3(self._intent, self._intent.predict_proba(X)[0])
+        i_lab, i_conf, i_alts = self._top3(self._intent,
+                                           apply_temperature(self._intent.predict_proba(X)[0], self.temperature))
         u_lab, u_conf, u_alts = self._top3(self._urgency, self._urgency.predict_proba(X)[0])
         if len(u_alts) < 2:  # a training set without one urgency level
             u_alts += [{"label": u, "confidence": 0.0} for u in URGENCIES
                        if u != u_lab and u not in {a["label"] for a in u_alts}][: 2 - len(u_alts)]
-        return Classification(i_lab, i_conf, i_alts, u_lab, u_conf, u_alts, "local", self.name, self.version,
+        version = self.version if self.temperature == 1.0 else f"{self.version}+T{self.temperature:g}"
+        return Classification(i_lab, i_conf, i_alts, u_lab, u_conf, u_alts, "local", self.name, version,
                               reason=f"local model: {i_lab} at {i_conf:.2f}, {u_lab} urgency at {u_conf:.2f}",
                               latency_ms=int((time.perf_counter() - t0) * 1000))
 
