@@ -74,6 +74,27 @@ cp .env.example .env
 `.env` holds your secret key. It is git-ignored: never commit it.
 
 
+## Run
+
+All commands run from the repo root with the virtual environment active.
+
+| What | Command |
+| --- | --- |
+| Tests (A12) | `python -m pytest tests -q` |
+| Ingest proof: one ticket per channel, normalised (A2) | `python -m src.ingest --input data/development_tickets.json` |
+| Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
+
+The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
+built in. It writes `results.jsonl`, `reconcile.json`, `decision_log_extract.jsonl`, `metrics_report.md/.json`
+and `run_info.json` to the output folder. Exit code 0 means every ticket has exactly one final decision row.
+
+The decision log for each run is a SQLite file at `storage/runs/<run_id>/decisions.db` (override with `--db`, or
+`--storage` / `STORAGE_DIR` for the folder). If the repo sits in a synced folder (Google Drive, OneDrive) and SQLite
+reports locking errors, point `--storage` at a local folder.
+
+Current state: the pipeline after Ingest is a placeholder, so every accepted ticket escalates. Components plug
+into `run_pipeline` in `evaluation/harness.py`.
+
 ## Where data goes
 
 | Location | What | Committed? |

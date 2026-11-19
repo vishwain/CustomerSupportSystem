@@ -4,7 +4,9 @@ __pycache__/
 .venv/
 venv/
 .env
-.env.example
+
+# Runtime state: decision logs, vector store (never committed)
+storage/
 
 # Notebooks / IDE
 .ipynb_checkpoints/
