@@ -8,16 +8,19 @@ Order (first match wins):
     1. kill_switch            config/runtime.json automation_paused = true, re-read every ticket (FR-31).
                               An unreadable or missing file counts as paused (fail closed).
     2. instruction_integrity  text matches the instruction-integrity list (FR-17).
-    3. classification_failed  intent 'unknown' (FR-05).
-    4. must_escalate_intent   predicted intent is security_incident, compliance_request, data_residency,
+    3. prior_contact_claim    text says an earlier support contact told or promised something. History is
+                              not read (FR-03), so it cannot be checked; a person replies.
+    4. classification_failed  intent 'unknown' (FR-05).
+    5. must_escalate_intent   predicted intent is security_incident, compliance_request, data_residency,
                               feature_request or unclear_request.
-    5. billing_dispute        billing_query or quota_or_overage and the text matches the dispute list (OQ-06).
-    6. must_escalate_alternative  one of those five intents is an alternative at or above
+    6. billing_dispute        billing_query or quota_or_overage and the text matches the dispute list (OQ-06,
+                              including waiver and compensation requests).
+    7. must_escalate_alternative  one of those five intents is an alternative at or above
                               must_escalate_alt_floor. Safety net for a misclassified risky ticket.
   Gates (FR-11):
-    7. no passage passed the retrieval cutoff        -> escalate, no model call.
-    8. intent confidence below the threshold         -> draft_for_review (Generate drafts, a person sends).
-    9. otherwise                                     -> auto_respond.
+    8. no passage passed the retrieval cutoff        -> escalate, no model call.
+    9. intent confidence below the threshold         -> draft_for_review (Generate drafts, a person sends).
+   10. otherwise                                     -> auto_respond.
 
 The rules and lists are in src/route.py defaults, overridable in config/routing.json. The threshold
 is set from data by docs/routing_threshold.py and stored with its date. With no routing config the
@@ -39,7 +42,19 @@ MUST_ESCALATE_INTENTS = ("security_incident", "compliance_request", "data_reside
                          "feature_request", "unclear_request")
 DISPUTE_INTENTS = ("billing_query", "quota_or_overage")
 DISPUTE_PATTERNS = (r"\brefund", r"\bdispute", r"\bchargeback", r"\bcredit\b", r"\bcredits\b",
-                    r"\bovercharg", r"\breimburs")
+                    r"\bovercharg", r"\breimburs", r"\bwaiv", r"\bwrite[- ]?off", r"\bcompensat",
+                    r"\bmoney\s+back", r"\bgoodwill")
+# The ticket says an earlier support contact told or promised something. History is not read (FR-03),
+# so the system cannot check what was said, and an automatic reply could contradict a person.
+PRIOR_CONTACT_PATTERNS = (
+    r"\b(your|the|an?|one\s+of\s+your)\s+(support\s+)?(agent|engineer|rep|representative|colleague|team|support)"
+    r"\s+(told|said|promised|confirmed|assured|agreed)\b",
+    r"\byou\s+(promised|told\s+(me|us)|agreed|assured)\b",
+    r"\bas\s+(promised|agreed)\b",
+    r"\b(previous|earlier|existing|open)\s+(ticket|case|support\s+request)\b",
+    r"\b(ticket|case)\s+(number|no\.?|#)\s*\w",
+    r"\blast\s+time\s+(i|we)\s+(contacted|wrote|spoke|asked)\b",
+)
 INTEGRITY_PATTERNS = (
     r"\bignore\b[^.\n]{0,40}\b(instruction|instructions|rules|prompt)\b",
     r"\bdisregard\b[^.\n]{0,40}\b(instruction|instructions|rules|prompt|above|previous)\b",
@@ -60,6 +75,7 @@ class RoutingConfig:
     dispute_intents: tuple[str, ...] = DISPUTE_INTENTS
     dispute_patterns: tuple[str, ...] = DISPUTE_PATTERNS
     integrity_patterns: tuple[str, ...] = INTEGRITY_PATTERNS
+    prior_contact_patterns: tuple[str, ...] = PRIOR_CONTACT_PATTERNS
     must_escalate_alt_floor: float = 0.15
     set_on: str = ""
     rule: str = ""
@@ -114,6 +130,7 @@ class Router:
         f = re.IGNORECASE | re.MULTILINE
         self._integrity = [re.compile(p, f) for p in self.cfg.integrity_patterns]
         self._dispute = [re.compile(p, f) for p in self.cfg.dispute_patterns]
+        self._prior = [re.compile(p, f) for p in self.cfg.prior_contact_patterns]
 
     # Rules that need only the text. Run BEFORE classification so no model call happens when they fire.
     def pre_rules(self, text: str) -> RouteDecision | None:
@@ -127,6 +144,13 @@ class Router:
                 return RouteDecision(
                     "escalate", f"instruction-integrity list matched ({m.group(0)[:40]!r}); "
                     "escalated before any model call", "instruction_integrity", self.cfg.threshold)
+        for rx in self._prior:
+            m = rx.search(text or "")
+            if m:
+                return RouteDecision(
+                    "escalate", f"ticket refers to an earlier support contact ({m.group(0)[:40]!r}); history is "
+                    "not read (FR-03), so what was said cannot be checked", "prior_contact_claim",
+                    self.cfg.threshold)
         return None
 
     def decide(self, text: str, cls, retrieval) -> RouteDecision:

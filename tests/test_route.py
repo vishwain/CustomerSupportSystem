@@ -157,3 +157,36 @@ def test_routing_row_logged(router, tmp_path):
     assert row["stage"] == "routing" and row["action_taken"] == "escalate"
     assert row["rule_fired"] == "must_escalate_intent:feature_request" and row["threshold_applied"] == 0.80
     assert row["reason"] and row["requirement_ids"][-1] == "FR-24"
+
+
+# ------------------------------------------------------------------ 5.9 follow-up (ENG-04, ENG-05)
+
+@pytest.mark.parametrize("text", [
+    "Please confirm that you will waive the extra charge.",
+    "We expect some compensation for the downtime.",
+    "Can we get our money back for this month?",
+])
+def test_waiver_and_compensation_requests_are_disputes(router, text):
+    d = router.decide(text, cls("billing_query", 0.99), hit())
+    assert d.action == "escalate" and d.rule_fired == "billing_dispute"
+
+
+@pytest.mark.parametrize("text", [
+    "Your agent told my colleague Grace Zhang that our export would finish soon.",
+    "The support engineer promised a fix by Friday.",
+    "As promised last week, please send the report.",
+    "Following up on my previous ticket about webhooks.",
+    "You told us this was resolved.",
+])
+def test_claims_about_an_earlier_support_contact_escalate_before_any_model_call(router, text):
+    d = router.pre_rules(text)
+    assert d is not None and d.action == "escalate" and d.rule_fired == "prior_contact_claim"
+
+
+@pytest.mark.parametrize("text", [
+    "Our export is missing records that were created after I started the job.",
+    "The docs said the link lasts a day. Our team agreed to try again tomorrow.",
+    "Our previous release was fine; how do I roll back to it?",
+])
+def test_ordinary_text_is_not_a_prior_contact_claim(router, text):
+    assert router.pre_rules(text) is None
