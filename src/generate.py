@@ -230,14 +230,22 @@ class Generator:
         return r.text
 
 
-def log_generation(log, ticket_id: str, text: str, g: GenerationResult, passages) -> None:
+def log_generation(log, ticket_id: str, text: str, g: GenerationResult, passages, private_terms=()) -> None:
+    """The model's text is logged with private data redacted: this row is written before Validate runs,
+    so a leak Validate later blocks must not be stored here either."""
+    from src.pii import redact
+
+    def r(s):
+        return redact(s, private_terms) if isinstance(s, str) else s
+
     score = {p.passage_id: p for p in passages}
     log.write(
-        ticket_id=ticket_id, stage="generation", action_taken=g.action, reason=g.reason or g.action,
+        ticket_id=ticket_id, stage="generation", action_taken=g.action, reason=r(g.reason or g.action),
         input_text=text, model_name=f"llm:{g.model}", model_version=g.model, prompt_version=g.prompt_version or "n/a",
-        prediction={"mode": g.mode, "can_answer": g.can_answer, "sentences": g.sentences, "cached": g.cached,
-                    "citations_ok": g.citations_ok, "unresolved": g.unresolved, "unsure_about": g.unsure_about,
-                    "restatement": g.restatement, **({"repairs": g.repairs} if g.repairs else {})},
+        prediction={"mode": g.mode, "can_answer": g.can_answer, "cached": g.cached,
+                    "sentences": [{**s, "text": r(s.get("text"))} for s in g.sentences],
+                    "citations_ok": g.citations_ok, "unresolved": g.unresolved, "unsure_about": r(g.unsure_about),
+                    "restatement": r(g.restatement), **({"repairs": g.repairs} if g.repairs else {})},
         sources_used=[{"doc_id": score[pid].doc_id, "passage_id": pid, "score": score[pid].score}
                       for pid in g.cited if pid in score],
         doc_review_age={score[pid].doc_id: score[pid].last_reviewed_days_ago for pid in g.cited if pid in score},

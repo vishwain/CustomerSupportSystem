@@ -166,7 +166,8 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
     if decision.action in ("auto_respond", "draft_for_review") and comp.generator is not None and res and res.passages:
         gen = comp.generator.generate(record, cls.intent, res.for_generation,
                                       "answer" if decision.action == "auto_respond" else "draft")
-        log_generation(log, record.ticket_id, record.text, gen, res.for_generation)
+        log_generation(log, record.ticket_id, record.text, gen, res.for_generation,
+                       private_terms=comp.private_terms | {v for v in (record.held_for_validate or {}).values() if v})
 
     draft, would_send, error, rule = "", False, (cls.error if cls.failed else "none"), decision.rule_fired
     validated: bool | None = None

@@ -33,3 +33,12 @@ def scrub(text: str) -> str:
     for name, rx in _COMPILED.items():
         out = rx.sub(f"[REDACTED:{name}]", out)
     return out
+
+
+def redact(text: str, terms=()) -> str:
+    """scrub() plus every given private term (customer names and ids in the run), case-insensitive.
+    Used for model output written to the decision log before Validate has run (FR-22, NFR-04)."""
+    out = scrub(text)
+    for t in sorted({t for t in terms if t and len(t) >= 3}, key=len, reverse=True):
+        out = re.sub(re.escape(t), "[REDACTED:customer]", out, flags=re.IGNORECASE)
+    return out
