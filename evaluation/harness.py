@@ -21,7 +21,8 @@ Writes to --output:
     escalation_queue.csv       every escalation with its package (FR-13), sorted by urgency then age (FR-06)
     reconcile.json             A8 check: final rows = tickets processed, no empty required field
     decision_log_extract.jsonl first 20 decision rows (A8 evidence; storage/ is not committed)
-    metrics_report.md / .json  skeleton report (FR-27 fills the full figure groups later)
+    metrics_report.md / .json  FR-27 report from the decision log and input file (evaluation/metrics.py)
+    answer_review.csv          sent answers for the two-assessor review (NFR-08)
     run_info.json              run id, input hash, database path, runs on this input so far
 
 Exit code: 0 = reconciled, 1 = reconcile failed, 2 = input file unreadable.
@@ -50,6 +51,7 @@ from src.guardrails import GuardrailConfig, Validator, log_validation, private_t
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
 from src.retrieve import RetrievalResult, Retriever, SentenceTransformerEmbedder, build_retriever, log_retrieval
 from src.route import RouteDecision, Router, log_routing
+from evaluation.metrics import build_report, write_outputs as write_metrics
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
 HARNESS_VERSION = "harness-0.5-validate"
@@ -302,47 +304,6 @@ def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
 
 
-def skeleton_metrics(results: list[dict[str, Any]], rec: dict[str, Any], run: dict[str, Any]) -> dict[str, Any]:
-    lat = sorted(r["latency_ms"] for r in results)
-
-    def pct(p: float) -> int:
-        return lat[min(len(lat) - 1, int(round(p * (len(lat) - 1))))] if lat else 0
-
-    return {
-        "run_id": run["run_id"],
-        "input": run["input_name"],
-        "run_date_utc": run["finished_at"],
-        "runs_on_this_input": run["runs_on_this_input"],
-        "tickets_in": len(results),
-        "by_channel": dict(Counter(r["channel"] for r in results)),
-        "by_action": dict(Counter(r["action"] for r in results)),
-        "by_route_action": dict(Counter(r["route_action"] for r in results)),
-        "by_error": dict(Counter(r["error"] for r in results)),
-        "provider_requests": sum((r.get("generation") or {}).get("requests", 0) for r in results),
-        "generation_cache_hits": sum(bool((r.get("generation") or {}).get("cached")) for r in results),
-        "degraded_mode_tickets": sum(bool(r.get("degraded_mode")) for r in results),
-        "latency_ms_p50": pct(0.50),
-        "latency_ms_p95": pct(0.95),
-        "decision_log_coverage_ok": rec["ok"],
-        "final_rows": rec["final_rows"],
-        "note": "Skeleton report. Business, technical, governance and segment figures added with FR-27.",
-    }
-
-
-def metrics_markdown(m: dict[str, Any]) -> str:
-    lines = [f"# Metrics report: {m['run_id']}", "",
-             f"Input: `{m['input']}`. Finished {m['run_date_utc']}. Runs on this input so far: {m['runs_on_this_input']}.",
-             "", "| Figure | Value |", "| --- | --- |"]
-    for k in ("tickets_in", "final_rows", "decision_log_coverage_ok", "provider_requests", "generation_cache_hits",
-              "degraded_mode_tickets", "latency_ms_p50", "latency_ms_p95"):
-        lines.append(f"| {k} | {m[k]} |")
-    for group in ("by_channel", "by_action", "by_route_action", "by_error"):
-        for k, v in sorted(m[group].items()):
-            lines.append(f"| {group}: {k} | {v} |")
-    lines += ["", m["note"], ""]
-    return "\n".join(lines)
-
-
 QUEUE_FIELDS = ("ticket_id", "urgency", "received_at", "summary", "restatement", "intent", "intent_confidence",
                 "alternatives", "passages", "reason", "unsure_about", "draft", "route_action", "rule_fired")
 URGENCY_ORDER = {"high": 0, "unknown": 0, "medium": 1, "low": 2}
@@ -491,6 +452,7 @@ def main(argv: list[str] | None = None) -> int:
     reconcile = log.reconcile(ticket_ids)
     log.finish_run(len(records), len(results), "completed" if reconcile["ok"] else "failed")
     extract = log.rows(limit=EXTRACT_ROWS)
+    all_rows = log.rows()
     log.close()
 
     finished = utc_now()
@@ -503,14 +465,13 @@ def main(argv: list[str] | None = None) -> int:
     with open(registry, "a", encoding="utf-8") as f:
         f.write(json.dumps({k: run_info[k] for k in ("run_id", "input_name", "input_sha256", "finished_at")}) + "\n")
 
-    metrics = skeleton_metrics(results, reconcile, run_info)
+    metrics = build_report(all_rows, run_info, results)  # FR-27: from the decision log and the input file
     write_jsonl(out_dir / "results.jsonl", results)
     write_jsonl(out_dir / "decision_log_extract.jsonl", extract)
     n_queue = write_escalation_queue(out_dir / "escalation_queue.csv", results)
     (out_dir / "reconcile.json").write_text(json.dumps(reconcile, indent=2), encoding="utf-8")
     (out_dir / "run_info.json").write_text(json.dumps(run_info, indent=2), encoding="utf-8")
-    (out_dir / "metrics_report.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-    (out_dir / "metrics_report.md").write_text(metrics_markdown(metrics), encoding="utf-8")
+    write_metrics(out_dir, metrics, results)
 
     status = "RECONCILED" if reconcile["ok"] else "RECONCILE FAILED"
     print(f"{status}: {reconcile['final_rows']} final rows for {len(records)} tickets; "

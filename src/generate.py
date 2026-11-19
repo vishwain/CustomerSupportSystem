@@ -235,7 +235,7 @@ def log_generation(log, ticket_id: str, text: str, g: GenerationResult, passages
     log.write(
         ticket_id=ticket_id, stage="generation", action_taken=g.action, reason=g.reason or g.action,
         input_text=text, model_name=f"llm:{g.model}", model_version=g.model, prompt_version=g.prompt_version or "n/a",
-        prediction={"mode": g.mode, "can_answer": g.can_answer, "sentences": g.sentences,
+        prediction={"mode": g.mode, "can_answer": g.can_answer, "sentences": g.sentences, "cached": g.cached,
                     "citations_ok": g.citations_ok, "unresolved": g.unresolved, "unsure_about": g.unsure_about,
                     "restatement": g.restatement, **({"repairs": g.repairs} if g.repairs else {})},
         sources_used=[{"doc_id": score[pid].doc_id, "passage_id": pid, "score": score[pid].score}
