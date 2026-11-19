@@ -72,6 +72,9 @@ class Classification:
     tokens_out: int = 0
     degraded: bool = False
     latency_ms: int = 0
+    # Full calibrated intent distribution (local model only; empty for PR-02 and fallback). Route sums the
+    # must-escalate classes from it (5.10); not written to the log, which keeps the top 3.
+    intent_distribution: dict[str, float] = field(default_factory=dict)
 
     @property
     def failed(self) -> bool:
@@ -432,8 +435,8 @@ class LocalClassifier:
             raise RuntimeError("local classifier not loaded")
         t0 = time.perf_counter()
         X = self.embedder.encode([t.text])
-        i_lab, i_conf, i_alts = self._top3(self._intent,
-                                           apply_temperature(self._intent.predict_proba(X)[0], self.temperature))
+        i_row = apply_temperature(self._intent.predict_proba(X)[0], self.temperature)
+        i_lab, i_conf, i_alts = self._top3(self._intent, i_row)
         u_lab, u_conf, u_alts = self._top3(self._urgency, self._urgency.predict_proba(X)[0])
         if len(u_alts) < 2:  # a training set without one urgency level
             u_alts += [{"label": u, "confidence": 0.0} for u in URGENCIES
@@ -441,7 +444,9 @@ class LocalClassifier:
         version = self.version if self.temperature == 1.0 else f"{self.version}+T{self.temperature:g}"
         return Classification(i_lab, i_conf, i_alts, u_lab, u_conf, u_alts, "local", self.name, version,
                               reason=f"local model: {i_lab} at {i_conf:.2f}, {u_lab} urgency at {u_conf:.2f}",
-                              latency_ms=int((time.perf_counter() - t0) * 1000))
+                              latency_ms=int((time.perf_counter() - t0) * 1000),
+                              intent_distribution={str(c): round(float(x), 6)
+                                                   for c, x in zip(self._intent.classes_, i_row)})
 
 
 class Classifier:

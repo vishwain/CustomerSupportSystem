@@ -1,6 +1,6 @@
 {
   "threshold": 0.95,
-  "must_escalate_alt_floor": 0.15,
+  "must_escalate_alt_floor": 0.01,
   "set_on": "2026-11-19",
   "rule": "lowest confidence where out-of-fold intent accuracy at or above it >= 95%, no overconfident failing calibration bin above it, zero must_not_auto_respond automatic (5.7)",
   "classifier_version": "2026-11-19-7a80b197a2fb",
@@ -23,5 +23,8 @@
     }
   },
   "set_by": "calibration",
-  "intent_temperature": 0.462
+  "intent_temperature": 0.462,
+  "must_escalate_alt_floor_rule": "smallest 1-2-5 value above the largest must mass of any safe-labelled would-be automatic answer in the dev data (out-of-fold on all 500, plus the deployed model on the hold-out); validation is the check",
+  "must_escalate_alt_floor_evidence": "evaluation/results/2026-11-19_must_escalate/must_escalate.md",
+  "must_escalate_alt_floor_set_on": "2026-11-19"
 }

@@ -74,8 +74,10 @@ def test_billing_disputes_escalate(router, text):
     assert d.action == "escalate" and d.rule_fired == "billing_dispute"
 
 
-def test_dispute_words_only_matter_for_billing_intents(router):
-    assert router.decide("refund policy for API keys?", cls(intent="api_key_issue"), hit()).action == "auto_respond"
+def test_dispute_words_escalate_whatever_the_intent(router):
+    """5.10: a dispute misfiled as an outage or key ticket must still reach a person."""
+    d = router.decide("The outage cost us a day. We want a refund.", cls(intent="performance_degradation"), hit())
+    assert d.action == "escalate" and d.rule_fired == "billing_dispute"
 
 
 # FR-17 acceptance: six injection fixtures escalate with rule_fired = instruction_integrity.
@@ -190,3 +192,70 @@ def test_claims_about_an_earlier_support_contact_escalate_before_any_model_call(
 ])
 def test_ordinary_text_is_not_a_prior_contact_claim(router, text):
     assert router.pre_rules(text) is None
+
+
+# ------------------------------------------------------------------ 5.10 must-not-auto-respond
+
+@pytest.mark.parametrize("text,group", [
+    ("Webhooks return 401. Also our signing secret leaked in a public repo.", "security"),
+    ("We see API calls nobody on the team recognises; we think the account is compromised.", "security"),
+    ("Please export everything we hold so we can answer a GDPR request.", "legal"),
+    ("Our auditor needs six months of access records.", "legal"),
+    ("Where is our data physically stored? It must stay in the EU.", "residency"),
+])
+def test_risk_terms_escalate_a_ticket_filed_under_a_safe_intent(router, text, group):
+    d = router.decide(text, cls(intent="webhook_issue", conf=0.99), hit())
+    assert d.action == "escalate" and d.rule_fired == f"risk_terms:{group}"
+
+
+@pytest.mark.parametrize("text", [
+    "We have a memory leak in our worker after the last deploy.",
+    "Every call returns 429 since this morning.",
+    "How do I rotate an API key without downtime?",
+])
+def test_risk_terms_leave_ordinary_tickets_alone(router, text):
+    assert router.decide(text, cls(), hit()).action == "auto_respond"
+
+
+def test_risk_terms_match_no_ordinary_dev_or_validation_ticket():
+    """On 580 labelled tickets the risk terms only hit the classes they are meant for."""
+    r = Router(RoutingConfig(threshold=0.8))
+    allowed = {"security_incident", "compliance_request", "data_residency"}
+    for name in ("development_tickets", "validation_tickets"):
+        for t in json.load(open(f"data/{name}.json", encoding="utf-8")):
+            text = f"{t.get('subject') or ''}\n{t.get('body') or ''}"
+            hit_group = r.layers(text, cls())["risk_terms"]
+            assert hit_group is None or t["labels"]["intent"] in allowed, (t["ticket_id"], hit_group)
+
+
+def test_alternative_guard_sums_every_must_escalate_class(router):
+    c = cls(intent="api_key_issue", conf=0.80, alts=(("rate_limit", 0.10), ("security_incident", 0.06)))
+    c.intent_distribution = {"api_key_issue": 0.80, "rate_limit": 0.10, "security_incident": 0.06,
+                             "compliance_request": 0.04}
+    router.cfg.must_escalate_alt_floor = 0.08
+    d = router.decide("Our key stopped working", c, hit())
+    assert d.action == "escalate" and d.rule_fired == "must_escalate_alternative:security_incident"
+    assert "0.100" in d.reason  # 0.06 + 0.04: neither alone reaches the floor
+
+
+def test_alternative_guard_uses_top3_when_no_distribution(router):
+    router.cfg.must_escalate_alt_floor = 0.05
+    c = cls(alts=(("security_incident", 0.06), ("api_key_issue", 0.02)))
+    assert router.decide("x", c, hit()).rule_fired == "must_escalate_alternative:security_incident"
+
+
+def test_alternative_mass_is_logged_in_gates(router):
+    d = router.decide("Every call returns 429", cls(), hit())
+    assert d.action == "auto_respond" and d.gates["must_escalate_mass"] == 0.0
+
+
+def test_layers_report_each_check_on_its_own(router):
+    c = cls(intent="security_incident", conf=0.99)
+    lay = router.layers("Our account was compromised and we want a refund", c)
+    assert lay["intent_rule"] and lay["dispute"] and lay["risk_terms"] == "security"
+
+
+@pytest.mark.parametrize("intent", list(MUST_ESCALATE_INTENTS))
+def test_no_confidence_overrides_a_must_escalate_intent(router, intent):
+    d = router.decide("anything", cls(intent=intent, conf=1.0, alts=()), hit(3))
+    assert d.action == "escalate" and d.rule_fired == f"must_escalate_intent:{intent}"

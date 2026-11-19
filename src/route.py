@@ -13,14 +13,18 @@ Order (first match wins):
     4. classification_failed  intent 'unknown' (FR-05).
     5. must_escalate_intent   predicted intent is security_incident, compliance_request, data_residency,
                               feature_request or unclear_request.
-    6. billing_dispute        billing_query or quota_or_overage and the text matches the dispute list (OQ-06,
-                              including waiver and compensation requests).
-    7. must_escalate_alternative  one of those five intents is an alternative at or above
-                              must_escalate_alt_floor. Safety net for a misclassified risky ticket.
+    6. billing_dispute        the text matches the dispute list (OQ-06, including waiver and compensation
+                              requests), whatever the predicted intent (5.10: a dispute misread as an
+                              outage or quota ticket must still reach a person).
+    7. risk_terms:<group>     the text names a security, legal or residency matter (RISK_TERMS) whatever the
+                              predicted intent. Catches a risky ticket the classifier files under a safe intent.
+    8. must_escalate_alternative  the must-escalate classes together hold at least must_escalate_alt_floor
+                              of the calibrated probability (top class excluded). Floor set from data by
+                              docs/must_escalate_check.py.
   Gates (FR-11):
-    8. no passage passed the retrieval cutoff        -> escalate, no model call.
-    9. intent confidence below the threshold         -> draft_for_review (Generate drafts, a person sends).
-   10. otherwise                                     -> auto_respond.
+    9. no passage passed the retrieval cutoff        -> escalate, no model call.
+   10. intent confidence below the threshold         -> draft_for_review (Generate drafts, a person sends).
+   11. otherwise                                     -> auto_respond.
 
 The rules and lists are in src/route.py defaults, overridable in config/routing.json. The threshold
 is set from data by docs/routing_threshold.py and stored with its date. With no routing config the
@@ -40,7 +44,19 @@ RUNTIME_CONFIG = Path("config/runtime.json")
 
 MUST_ESCALATE_INTENTS = ("security_incident", "compliance_request", "data_residency",
                          "feature_request", "unclear_request")
-DISPUTE_INTENTS = ("billing_query", "quota_or_overage")
+# Text that names a security, legal or residency matter. Checked on every ticket (5.10). On the 580 dev
+# and validation tickets these match only security_incident, compliance_request and data_residency tickets.
+RISK_TERMS = {
+    "security": (r"\bbreach(es|ed)?\b", r"\bcompromis", r"\bhack(ed|er|ers)?\b", r"\bunauthori[sz]ed\b",
+                 r"\bphishing\b", r"\bransomware\b", r"\bmalicious\b",
+                 r"\b(key|secret|token|password|credential)s?\b[^.\n]{0,40}\bleak",
+                 r"\bleak(ed|s)?\b[^.\n]{0,40}\b(key|secret|token|password|credential)s?\b",
+                 r"\bnone of us recogni[sz]e", r"\bnobody (on the team )?(claims|recogni[sz]es)"),
+    "legal": (r"\bgdpr\b", r"\blawyers?\b", r"\blegal\b", r"\bsubpoena", r"\bcourt\b", r"\bregulators?\b",
+              r"\bhipaa\b", r"\bsoc ?2\b", r"\bauditors?\b", r"\bdata processing agreement\b"),
+    "residency": (r"\bresidency\b", r"\bphysically stored\b",
+                  r"\b(stay|stays|stored|kept|held|hosted) (only )?in the (eu|uk|us|european union)\b"),
+}
 DISPUTE_PATTERNS = (r"\brefund", r"\bdispute", r"\bchargeback", r"\bcredit\b", r"\bcredits\b",
                     r"\bovercharg", r"\breimburs", r"\bwaiv", r"\bwrite[- ]?off", r"\bcompensat",
                     r"\bmoney\s+back", r"\bgoodwill")
@@ -72,10 +88,10 @@ NEVER = 1.01  # threshold that no confidence can reach
 class RoutingConfig:
     threshold: float = NEVER
     must_escalate_intents: tuple[str, ...] = MUST_ESCALATE_INTENTS
-    dispute_intents: tuple[str, ...] = DISPUTE_INTENTS
     dispute_patterns: tuple[str, ...] = DISPUTE_PATTERNS
     integrity_patterns: tuple[str, ...] = INTEGRITY_PATTERNS
     prior_contact_patterns: tuple[str, ...] = PRIOR_CONTACT_PATTERNS
+    risk_terms: dict[str, tuple[str, ...]] = field(default_factory=lambda: dict(RISK_TERMS))
     must_escalate_alt_floor: float = 0.15
     set_on: str = ""
     rule: str = ""
@@ -131,6 +147,7 @@ class Router:
         self._integrity = [re.compile(p, f) for p in self.cfg.integrity_patterns]
         self._dispute = [re.compile(p, f) for p in self.cfg.dispute_patterns]
         self._prior = [re.compile(p, f) for p in self.cfg.prior_contact_patterns]
+        self._risk = {g: [re.compile(p, f) for p in ps] for g, ps in self.cfg.risk_terms.items()}
 
     # Rules that need only the text. Run BEFORE classification so no model call happens when they fire.
     def pre_rules(self, text: str) -> RouteDecision | None:
@@ -153,6 +170,37 @@ class Router:
                     self.cfg.threshold)
         return None
 
+    @staticmethod
+    def _match(rxs, text: str) -> str | None:
+        for rx in rxs:
+            m = rx.search(text or "")
+            if m:
+                return m.group(0)[:40]
+        return None
+
+    def must_escalate_mass(self, cls) -> tuple[float, str]:
+        """Calibrated probability held by the must-escalate classes other than the top one, and the largest
+        of them. Uses the full distribution when the local model gives one, else the top-3 alternatives."""
+        must = self.cfg.must_escalate_intents
+        dist = getattr(cls, "intent_distribution", None) or {a["label"]: a["confidence"]
+                                                             for a in cls.intent_alternatives}
+        risky = {k: float(v) for k, v in dist.items() if k in must and k != cls.intent}
+        if not risky:
+            return 0.0, "none"
+        top = max(risky, key=risky.get)
+        return round(sum(risky.values()), 4), top
+
+    def layers(self, text: str, cls) -> dict[str, Any]:
+        """Which 5.10 checks would catch this ticket, each on its own (evidence for the defence in depth)."""
+        mass, top = self.must_escalate_mass(cls)
+        return {
+            "intent_rule": cls.intent in self.cfg.must_escalate_intents,
+            "dispute": self._match(self._dispute, text) is not None,
+            "risk_terms": next((g for g, rxs in self._risk.items() if self._match(rxs, text)), None),
+            "alternative_mass": mass, "alternative_top": top,
+            "alternative_guard": mass >= self.cfg.must_escalate_alt_floor,
+        }
+
     def decide(self, text: str, cls, retrieval) -> RouteDecision:
         """cls: src.classify.Classification. retrieval: src.retrieve.RetrievalResult or None (not run)."""
         cfg = self.cfg
@@ -169,22 +217,25 @@ class Router:
         if cls.intent in cfg.must_escalate_intents:
             return RouteDecision("escalate", f"intent {cls.intent} must always escalate (FR-12)",
                                  f"must_escalate_intent:{cls.intent}", **d)
-        if cls.intent in cfg.dispute_intents:
-            for rx in self._dispute:
-                m = rx.search(text or "")
-                if m:
-                    return RouteDecision("escalate", f"{cls.intent} with dispute wording ({m.group(0)!r}); "
-                                         "disputes always escalate (FR-12, OQ-06)", "billing_dispute", **d)
-        risky = [a for a in cls.intent_alternatives
-                 if a["label"] in cfg.must_escalate_intents and a["confidence"] >= cfg.must_escalate_alt_floor]
-        if risky:
-            a = risky[0]
-            return RouteDecision("escalate", f"alternative {a['label']} at {a['confidence']:.2f} >= "
-                                 f"{cfg.must_escalate_alt_floor:.2f}; a must-escalate class is too likely to "
-                                 "answer automatically", f"must_escalate_alternative:{a['label']}", **d)
+        m = self._match(self._dispute, text)
+        if m:
+            return RouteDecision("escalate", f"dispute wording ({m!r}) in a {cls.intent} ticket; "
+                                 "disputes always escalate (FR-12, OQ-06)", "billing_dispute", **d)
+        for group, rxs in self._risk.items():
+            m = self._match(rxs, text)
+            if m:
+                return RouteDecision("escalate", f"{group} wording ({m!r}) in a {cls.intent} ticket; "
+                                     "a person checks it whatever the predicted intent (FR-12)",
+                                     f"risk_terms:{group}", **d)
+        mass, top_risky = self.must_escalate_mass(cls)
+        if mass >= cfg.must_escalate_alt_floor:
+            return RouteDecision("escalate", f"must-escalate classes hold {mass:.3f} of the probability "
+                                 f"(largest {top_risky}) >= floor {cfg.must_escalate_alt_floor:g}; too likely "
+                                 "to be a risky ticket to answer automatically",
+                                 f"must_escalate_alternative:{top_risky}", **d)
 
         n_pass = len(retrieval.passages) if retrieval is not None else 0
-        gates = {"passages": n_pass, "confidence_ok": conf >= cfg.threshold}
+        gates = {"passages": n_pass, "confidence_ok": conf >= cfg.threshold, "must_escalate_mass": mass}
         if n_pass == 0:
             why = "retrieval not run" if retrieval is None else retrieval.reason
             return RouteDecision("escalate", f"no passage passed the relevance cutoff ({why}); "
