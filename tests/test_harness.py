@@ -15,7 +15,7 @@ def ticket(i, channel="email", **over):
 def run(tmp_path, input_path):
     out = tmp_path / "out"
     code = harness.main(["--input", str(input_path), "--output", str(out),
-                         "--storage", str(tmp_path / "storage"), "--quiet"])
+                         "--storage", str(tmp_path / "storage"), "--quiet", "--no-retrieval"])
     return code, out
 
 def test_unseen_five_ticket_file(tmp_path):
@@ -74,7 +74,7 @@ def test_final_write_failure_fails_closed(tmp_path, monkeypatch):
 def test_pipeline_crash_escalates_and_logs(tmp_path, monkeypatch):
     log = DecisionLog(tmp_path / "d.db", "r")
 
-    def boom(record, log):
+    def boom(record, log, comp=None):
         raise RuntimeError("classifier exploded for jane@example.com")
 
     monkeypatch.setattr(harness, "run_pipeline", boom)

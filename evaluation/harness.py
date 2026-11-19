@@ -5,8 +5,10 @@ One command, any ticket file, no hardcoded filename or ticket count:
     python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>
 
 Per ticket: Ingest -> pipeline -> final decision row (written BEFORE the action) -> result line.
-Today the pipeline is a placeholder that escalates every accepted ticket. Classify, Retrieve,
-Route, Generate and Validate plug into `run_pipeline` later; the harness does not change.
+Today the pipeline runs Retrieve (writes a retrieval row) and then escalates every accepted
+ticket. Classify, Route, Generate and Validate plug into `run_pipeline`; the harness loop does not change.
+Retrieval needs config/retrieval.json (from docs/retrieval_experiment.py --write-config); without it,
+or with --no-retrieval, the run continues without a retrieval row.
 
 Writes to --output:
     results.jsonl              one line per ticket: action, reason, error, latency
@@ -35,9 +37,10 @@ from typing import Any
 
 from src import pii
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
+from src.retrieve import Retriever, build_retriever, log_retrieval
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
-HARNESS_VERSION = "harness-0.1-skeleton"
+HARNESS_VERSION = "harness-0.2-retrieval"
 EXTRACT_ROWS = 20
 
 
@@ -55,21 +58,36 @@ class Outcome:
     placeholder: bool = False
 
 
-def run_pipeline(record: TicketRecord, log: DecisionLog) -> Outcome:
+@dataclass
+class Components:
+    """Built once per run, shared by every ticket. None = component not available yet."""
+
+    retriever: Retriever | None = None
+
+
+def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None = None) -> Outcome:
     """Classify -> Retrieve -> Route -> Generate -> Validate. Each component writes its own stage row.
 
-    Placeholder until those components exist: escalate, which is the safe default.
+    Built so far: Retrieve. Route is not built, so every ticket escalates (the safe default).
     """
+    comp = comp or Components()
+    package: dict[str, Any] = {"channel": record.channel}
+    if comp.retriever is not None:
+        t0 = time.perf_counter()
+        res = comp.retriever.retrieve(record.text)
+        log_retrieval(log, record.ticket_id, record.text, comp.retriever, res,
+                      latency_ms=int((time.perf_counter() - t0) * 1000))
+        package["passages"] = [{"passage_id": p.passage_id, "score": p.score} for p in res.passages]
+        package["retrieval"] = res.reason
     return Outcome(
         action="escalate",
-        reason="Pipeline components not built yet (harness skeleton); ticket escalated to a person.",
-        escalation_package={"summary": "skeleton run: no classification or retrieval yet",
-                            "channel": record.channel},
+        reason="Routing not built yet (harness skeleton); ticket escalated to a person.",
+        escalation_package={"summary": "skeleton run: no classification or routing yet", **package},
         placeholder=True,
     )
 
 
-def process_ticket(record: TicketRecord, log: DecisionLog) -> dict[str, Any]:
+def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | None = None) -> dict[str, Any]:
     t0 = time.perf_counter()
     ingest_model = {"model_name": "rules:ingest", "model_version": INGEST_VERSION}
 
@@ -84,7 +102,7 @@ def process_ticket(record: TicketRecord, log: DecisionLog) -> dict[str, Any]:
         )
         # 2. Pipeline, or straight to escalation for malformed input (FR-02).
         if record.ok:
-            outcome = run_pipeline(record, log)
+            outcome = run_pipeline(record, log, comp)
         else:
             outcome = Outcome(action="escalate", error="malformed_input",
                               reason=f"Malformed input ({record.ingest_reason}); escalated without a model call.",
@@ -191,6 +209,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--storage", default=os.getenv("STORAGE_DIR", "storage"),
                     help="runtime folder, never committed (default: storage, or $STORAGE_DIR)")
     ap.add_argument("--quiet", action="store_true", help="no per-ticket lines")
+    ap.add_argument("--no-retrieval", action="store_true", help="skip Retrieve (fast plumbing runs, tests)")
+    ap.add_argument("--retrieval-config", default="config/retrieval.json")
     a = ap.parse_args(argv)
 
     if hasattr(sys.stdout, "reconfigure"):
@@ -216,13 +236,22 @@ def main(argv: list[str] | None = None) -> int:
     registry = storage / "run_registry.jsonl"
     prior_runs = registry_count(registry, input_sha)
 
+    comp = Components()
+    if not a.no_retrieval:
+        try:
+            comp.retriever = build_retriever(a.retrieval_config)
+            print(f"retrieval: {comp.retriever.model_version}, cutoff {comp.retriever.cutoff}")
+        except Exception as e:  # missing config or model: run continues, retrieval rows absent
+            print(f"WARNING: retrieval unavailable ({type(e).__name__}: {e}); continuing without it",
+                  file=sys.stderr)
+
     log = DecisionLog(db_path, run_id)
     log.start_run(in_path.name, input_sha, notes=HARNESS_VERSION)
     print(f"run {run_id}: {len(records)} tickets from {in_path} (runs on this file before: {prior_runs})")
 
     results = []
     for rec in records:
-        r = process_ticket(rec, log)
+        r = process_ticket(rec, log, comp)
         results.append(r)
         if not a.quiet:
             print(f"  {r['ticket_id']:<12} {r['channel']:<13} {r['action']:<12} {r['error']}")
