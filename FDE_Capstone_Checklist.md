@@ -88,7 +88,7 @@ Build checkpoints (Build Specification):
 - [x] 5.4 Evaluation harness skeleton: takes --input and --output path arguments, no hardcoded filenames (A9, A10)
 - [x] 5.5 Day 3: Classifier (intent + urgency + confidence + alternatives + fallback) (A3)
 - [x] 5.6 Day 3: Routing with data-derived threshold, deterministic, reason logged (A5); run 20 tickets and read the log
-- [ ] 5.7 Calibrate confidence (bins vs observed accuracy); choose threshold from data and record trade-off
+- [x] 5.7 Calibrate confidence (bins vs observed accuracy); choose threshold from data and record trade-off
 - [ ] 5.8 Day 4: Generation with citations that resolve to retrieved passages (A6)
 - [ ] 5.9 Day 4: Guardrails (private data, grounding, instruction integrity, tone/scope, confidence floor) that actually block (A7); test with engineered ticket
 - [ ] 5.10 must_not_auto_respond classes always escalate; escalations carry summary + sources

@@ -92,6 +92,7 @@ All commands run from the repo root with the virtual environment active.
 | Train the local classifier (also happens automatically on first use) (A3) | `python -m src.classify` |
 | Routing study at Route level (FR-11 view, 5.6) | `python docs/routing_threshold.py` |
 | Calibration table and routing threshold: writes `evaluation/results/<date>_calibration/`, `config/routing.json`, `config/calibration.json` (5.7) | `python docs/calibration.py --write-config` |
+| Compare answer prompts PR-03 v1.0 and v2.0 on the dev hold-out; writes `config/generation.json` (5.8) | `python docs/generate_eval.py --write-config` |
 | Full unattended run on any ticket file (A9, A10) | `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<run-folder>` |
 
 The harness takes any `.json` list or `.jsonl` file of tickets in the pack schema. No filename or ticket count is
@@ -107,10 +108,18 @@ relevance cutoff, date set). The first run downloads `all-MiniLM-L6-v2` to the H
 index is built in `storage/chroma` and rebuilt automatically when the docs, chunking or model change.
 Results and the reasoning are in `docs/retrieval_experiment.md`.
 
-Current state: Ingest, Classify, Retrieve and Route run, and each writes its own decision-log row. Generate is not
-built, so the final action is always escalate; `results.jsonl` and the routing rows show what Route chose
-(auto_respond, draft_for_review or escalate) and why. `--limit 20` runs the first 20 tickets; `--no-models` skips the
-embedding model for quick plumbing runs.
+Current state: Ingest, Classify, Retrieve, Route and Generate run, and each writes its own decision-log row.
+Generate (PR-03) runs only when Route chose auto_respond or draft_for_review; every cited passage id is checked in
+code against the passages retrieved for that ticket. Validate (5.9) is not built, so nothing is sent yet: an answer
+that passes the citation check is held for an agent and marked `would_send` in `results.jsonl`. Customer-facing
+text (automated label, greeting, sign-off, holding message) is in `config/messages.json`. Which PR-03 version runs is
+in `config/generation.json`. Generate also sees the other chunks of each retrieved article (`expand_docs` in
+`config/retrieval.json`, default 2), so an answer can reach the Resolution steps; Route still counts only the
+passages that passed the cutoff. `--limit 20` runs the
+first 20 tickets; `--no-models` skips the embedding model; `--no-llm` skips all provider calls.
+
+Read the generated answers next to the ticket and the cited passage text:
+`python -m evaluation.show_answers --run-dir evaluation/results/<run-folder>`.
 
 Read a run's decision log as text: `python -m evaluation.show_log --run-dir evaluation/results/<run-folder>`.
 
