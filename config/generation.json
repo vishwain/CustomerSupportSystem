@@ -1,0 +1,6 @@
+{
+  "prompt": "build/generate_v2.txt",
+  "set_on": "2026-11-19",
+  "why": "v2 adopted: precision 71.4% -> 72.4%, actionable 92.9% -> 100.0%, answerable lost 2 -> 0",
+  "evidence": "evaluation/results/2026-11-19_generate_eval/generate_eval.md"
+}

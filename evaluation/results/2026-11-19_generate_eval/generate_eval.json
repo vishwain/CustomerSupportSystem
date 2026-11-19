@@ -1,0 +1,46 @@
+{
+  "run_date": "2026-11-19",
+  "model": "nvidia/nemotron-3.5-lightning:free",
+  "summary": {
+    "v1": {
+      "tickets": 58,
+      "send_ready": 56,
+      "precision": 0.7143,
+      "expected_escalate": 16,
+      "escalate_refused": 0,
+      "expected_auto": 42,
+      "answerable_lost": 2,
+      "cannot_answer": 0,
+      "citation_failures": 2,
+      "other_errors": {},
+      "actionable_share": 0.9286,
+      "avg_sentences": 3.16,
+      "avg_words_per_sentence": 17.4,
+      "max_sentence_words": 31,
+      "requests": 27,
+      "retries": 0,
+      "rate_limit_wait_s": 23.6
+    },
+    "v2": {
+      "tickets": 58,
+      "send_ready": 58,
+      "precision": 0.7241,
+      "expected_escalate": 16,
+      "escalate_refused": 0,
+      "expected_auto": 42,
+      "answerable_lost": 0,
+      "cannot_answer": 0,
+      "citation_failures": 0,
+      "other_errors": {},
+      "actionable_share": 1.0,
+      "avg_sentences": 2.98,
+      "avg_words_per_sentence": 18.8,
+      "max_sentence_words": 30,
+      "requests": 27,
+      "retries": 0,
+      "rate_limit_wait_s": 22.7
+    }
+  },
+  "decision": "v2 adopted: precision 71.4% -> 72.4%, actionable 92.9% -> 100.0%, answerable lost 2 -> 0",
+  "v2_adopted": true
+}
