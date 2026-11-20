@@ -115,9 +115,9 @@ Build checkpoints (Build Specification):
 - [x] 5b.2 Risk register complete (R-01...R-08 + own): likelihood, impact, real mitigation, named owner
 - [x] 5b.3 Fairness audit: segments (tier, region, fluency, ticket length) with sample sizes, resolution + quality + citation accuracy, honest findings
 - [x] 5b.4 Guardrail table documented and shown working
-- [ ] 5b.5 Incident response procedure (detect, contain, assess, notify, remediate, review) usable at 2 a.m.
-- [ ] 5b.6 Kill switch: mechanism, who, time to effect, in-flight tickets, how tested
-- [ ] 5b.7 Declaration completed (must never / mechanism / likely harm / not deploy without)
+- [x] 5b.5 Incident response procedure (detect, contain, assess, notify, remediate, review) usable at 2 a.m.
+- [x] 5b.6 Kill switch: mechanism, who, time to effect, in-flight tickets, how tested
+- [x] 5b.7 Declaration completed (must never / mechanism / likely harm / not deploy without)
 - [ ] 5b.8 Prometheus metrics + Grafana dashboard (tickets by channel/outcome, auto vs escalated, p50/p95 latency, guardrail activations, confidence distribution)
 - [ ] 5b.9 GitHub Actions CI running tests on push; no keys in workflow (use secrets or recorded responses)
 
