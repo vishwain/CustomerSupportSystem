@@ -1,5 +1,7 @@
 # Customer Support System
 
+[![CI](https://github.com/vishwain/CustomerSupportSystem/actions/workflows/ci.yml/badge.svg)](https://github.com/vishwain/CustomerSupportSystem/actions/workflows/ci.yml)
+
 AI-assisted support for CloudServe (FDE Capstone). Each ticket is normalised, classified, matched to help
 articles, routed by rules and a data-derived threshold, answered with citations or escalated with a
 summary, checked by guardrails, and logged. Every decision, answered or escalated, has a row in a SQLite
@@ -161,6 +163,9 @@ pytest
 network and no model download: model calls go through scripted clients and embeddings through a hashed
 `FakeEmbedder`. An autouse fixture in `tests/conftest.py` fails any test that tries a real provider call or
 model load, and sets a dummy key so a real key in `.env` is never used.
+
+CI (`.github/workflows/ci.yml`) runs the same `pytest` on every push and pull request (Ubuntu, Python 3.14),
+after checking that no `.env` or key is committed. It uses no secrets.
 
 | A12 area | Tests |
 | --- | --- |
