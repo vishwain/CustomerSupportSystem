@@ -115,3 +115,17 @@ def test_review_sheet_rows_and_scrubbing(tmp_path):
     rows = list(csv.DictReader(open(tmp_path / "r.csv", encoding="utf-8-sig")))
     assert n == 1 and rows[0]["ticket_id"] == "T-1" and "[REDACTED:email]" in rows[0]["ticket_text"]
     assert rows[0]["cited_passages"] == "DOC-API-001#c01"
+
+
+def test_confusion_and_outbound_safety(tmp_path):
+    tickets = [labelled("T-1"), labelled("T-2", intent="billing_query", docs=("DOC-BILL-001",))]
+    m, results, _ = run_synthetic(tmp_path, tickets, [answer(), answer()])
+    off = m["confusion"]["intent"]["off_diagonal"]
+    assert off == [{"label": "billing_query", "predicted": "rate_limit", "n": 1}]
+    assert m["confusion"]["urgency"]["matrix"]["medium"]["medium"] == 2
+    assert m["safety"]["scanned"] == 2 and m["safety"]["messages_with_private_data"] == 0
+    results[0]["customer_message"] += " Contact N at n@example.com"
+    s = metrics.outbound_private_data(results, metrics.input_join(tmp_path / "in.json"))
+    assert s["messages_with_private_data"] == 1 and s["hits"][0]["patterns"] == {"email": 1}
+    md = metrics.to_markdown(m)
+    assert "## Confusion matrices" in md and "Messages with private data: 0" in md

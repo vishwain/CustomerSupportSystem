@@ -189,6 +189,38 @@ def per_class(fs: list[dict[str, Any]], pred_key: str, label_key: str) -> dict[s
             "accuracy": pct(sum(f[pred_key] == f[label_key] for f in lab), len(lab)) if lab else None}
 
 
+def confusion(fs: list[dict[str, Any]], pred_key: str, label_key: str) -> dict[str, Any]:
+    """Rows = label, columns = prediction. Off-diagonal cells listed separately for the report."""
+    lab = [f for f in fs if f["has_labels"] and f[label_key] is not None]
+    classes = sorted({f[label_key] for f in lab} | {str(f[pred_key]) for f in lab})
+    m = {a: {b: 0 for b in classes} for a in classes}
+    for f in lab:
+        m[f[label_key]][str(f[pred_key])] += 1
+    off = sorted(((a, b, n) for a, row in m.items() for b, n in row.items() if a != b and n),
+                 key=lambda x: -x[2])
+    return {"classes": classes, "matrix": m, "off_diagonal": [{"label": a, "predicted": b, "n": n} for a, b, n in off]}
+
+
+def outbound_private_data(results: list[dict[str, Any]] | None, raw_by_id: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Safety (NFR-04): scan EVERY outbound customer message (sent answers and holding messages) for
+    private-data patterns and for any customer name or id that appears anywhere in the input file."""
+    if results is None:
+        return {"scanned": None}
+    terms = {str(v).strip() for raw in raw_by_id.values() for k in ("customer_name", "customer_id")
+             for v in [raw.get(k)] if v and len(str(v).strip()) >= 3}
+    hits = []
+    for r in results:
+        text = r.get("customer_message") or ""
+        found = pii.find(text)
+        low = text.lower()
+        names = sorted(t for t in terms if t.lower() in low)
+        if found or names:
+            hits.append({"ticket_id": r["ticket_id"], "patterns": found, "customer_terms": len(names)})
+    return {"scanned": len(results), "sent_answers": sum(r["action"] == "auto_respond" for r in results),
+            "messages_with_private_data": len(hits), "hits": hits,
+            "terms_checked": len(terms)}
+
+
 def calibration(fs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     lab = [f for f in fs if f["has_labels"] and f["intent_conf"] is not None and f["intent"] not in (None, "unknown")]
     out = []
@@ -349,6 +381,9 @@ def build_report(rows: list[dict[str, Any]], run_info: dict[str, Any],
         "by_route_action": dict(Counter(f["route"] for f in fs)), "by_error": governance["errors"],
     }
     report["consistency"] = consistency(fs, results) if results is not None else None
+    report["confusion"] = ({"intent": confusion(fs, "intent", "label_intent"),
+                            "urgency": confusion(fs, "urgency", "label_urgency")} if labelled else None)
+    report["safety"] = outbound_private_data(results, raw_by_id)
     return report
 
 
@@ -478,6 +513,23 @@ def to_markdown(m: dict[str, Any]) -> str:
         L.append(f"| {k} | {x['n']} | {fmt(x['auto_rate'], '%')} | {fmt(x['intent_accuracy'], '%')} | "
                  f"{fmt(x['retrieval_hit3'], '%')} ({x['retrieval_n']}) | {fmt(x['sent_cites_expected_doc'], '%')} "
                  f"({x['sent_with_expected_docs']}) |")
+    if m.get("confusion"):
+        u = m["confusion"]["urgency"]
+        L += ["", "## Confusion matrices", "", "Urgency (rows = label, columns = predicted):", "",
+              "| label \\ predicted | " + " | ".join(u["classes"]) + " |", "| --- |" + " --- |" * len(u["classes"])]
+        for a in u["classes"]:
+            L.append(f"| {a} | " + " | ".join(str(u["matrix"][a][b]) for b in u["classes"]) + " |")
+        i = m["confusion"]["intent"]
+        L += ["", f"Intent: {len(i['classes'])} classes; full matrix in metrics_report.json. Off-diagonal cells: "
+              + ("; ".join(f"{x['label']} -> {x['predicted']} {x['n']}" for x in i["off_diagonal"]) or "none "
+                 "(every ticket on the diagonal)") + "."]
+    s = m.get("safety") or {}
+    if s.get("scanned") is not None:
+        L += ["", "## Safety: private data in outbound responses (NFR-04)", "",
+              f"Every outbound customer message scanned: {s['scanned']} ({s['sent_answers']} sent answers, the rest "
+              f"holding messages), against the private-data patterns and all {s['terms_checked']} customer names "
+              f"and ids in the input file. **Messages with private data: {s['messages_with_private_data']}**"
+              + ("" if not s["hits"] else ": " + ", ".join(h["ticket_id"] for h in s["hits"])) + "."]
     if m["consistency"]:
         ok = all(x["match"] for x in m["consistency"].values())
         L += ["", "## Consistency with results.jsonl", "",
