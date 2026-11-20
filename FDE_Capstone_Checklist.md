@@ -119,7 +119,7 @@ Build checkpoints (Build Specification):
 - [x] 5b.6 Kill switch: mechanism, who, time to effect, in-flight tickets, how tested
 - [x] 5b.7 Declaration completed (must never / mechanism / likely harm / not deploy without)
 - [x] 5b.8 Prometheus metrics + Grafana dashboard (tickets by channel/outcome, auto vs escalated, p50/p95 latency, guardrail activations, confidence distribution)
-- [ ] 5b.9 GitHub Actions CI running tests on push; no keys in workflow (use secrets or recorded responses)
+- [x] 5b.9 GitHub Actions CI running tests on push; no keys in workflow (use secrets or recorded responses)
 
 ## Stage 6: Report, video, packaging (Week 3)
 Report (single PDF, 20-30 pages excl. appendices; FirstnameLastname_Capstone_Report.pdf)
