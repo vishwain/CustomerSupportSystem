@@ -1,6 +1,6 @@
 # Decision-log audit (5b.1): 20261120T025358Z_validation_tickets_056a
 
-Input `data/validation_tickets.json`; log `storage/runs/20261120T025358Z_validation_tickets_056a/decisions.db`. Checked by `evaluation/log_audit.py` against the Governance Framework minimum record.
+Input `data\validation_tickets.json`; log `storage\runs\20261120T025358Z_validation_tickets_056a\decisions.db`. Checked by `evaluation/log_audit.py` against the Governance Framework minimum record.
 
 **PASS**: fields complete, coverage reconciles exactly.
 
