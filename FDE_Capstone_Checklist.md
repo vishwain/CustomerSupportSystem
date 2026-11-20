@@ -102,10 +102,10 @@ Build checkpoints (Build Specification):
 - [x] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
 - [x] 5.19 Hidden/final evaluation run: ONCE only; record date and number of runs (see clarifications)
 - [x] 5.20 Revise PRD to v2.0 (compulsory) -> Workbooks/Stage_5_PRD_Revision_Log.docx
-- [ ] 5.21 Revision log Section 1: summary counts and reviewer
-- [ ] 5.22 Section 2: each change: ID, v1 text, v2 text, specific trigger, agreed by
-- [ ] 5.23 Section 3: each v1 assumption: held or not, what found, what changed
-- [ ] 5.24 Section 4: things that looked wrong but left, why, cost, revisit date
+- [x] 5.21 Revision log Section 1: summary counts and reviewer
+- [x] 5.22 Section 2: each change: ID, v1 text, v2 text, specific trigger, agreed by
+- [x] 5.23 Section 3: each v1 assumption: held or not, what found, what changed
+- [x] 5.24 Section 4: things that looked wrong but left, why, cost, revisit date
 - [ ] 5.25 Section 5: four reflection answers in full sentences (your own judgment, not AI-written)
 - [ ] 5.26 Commit regularly throughout (history reviewed for steady work); no keys in code or history
 - [ ] 5.27 Update Effort Log and daily check-ins
