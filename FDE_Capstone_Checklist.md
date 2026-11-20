@@ -144,13 +144,13 @@ Video (MP4 1080p, 20 min +/- 2, FirstnameLastname_Capstone_Video.mp4)
 - [ ] 6.17 Record take 2; verify length 18-22 min, audio, legibility, you on camera at intro and close
 
 Workbooks and logs
-- [ ] 6.18 All five stage workbooks genuinely completed
+- [x] 6.18 All five stage workbooks genuinely completed
 - [ ] 6.19 Effort Log finished: entries throughout, hours by stage reconcile, estimates vs reality, reflection answers, declaration (FirstnameLastname_Effort_Log.pdf)
 
 Source code
-- [ ] 6.20 Fresh clone on a clean machine: README steps work, tests pass, full run works
-- [ ] 6.21 Credential scan of code and history; attribution for external/AI-generated code
-- [ ] 6.22 Repo structure matches Submission Guide (README, requirements.txt, .env.example, src, prompts, tests, evaluation, docs, data, .github/workflows)
+- [x] 6.20 Fresh clone on a clean machine: README steps work, tests pass, full run works
+- [x] 6.21 Credential scan of code and history; attribution for external/AI-generated code
+- [x] 6.22 Repo structure matches Submission Guide (README, requirements.txt, .env.example, src, prompts, tests, evaluation, docs, data, .github/workflows)
 
 Packaging (day before deadline)
 - [ ] 6.23 Build FirstnameLastname_Capstone_Submission.zip with exactly 4 folders: 01_Video, 02_Report, 03_Workbooks, 04_Source_Code
