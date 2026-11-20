@@ -123,19 +123,19 @@ Build checkpoints (Build Specification):
 
 ## Stage 6: Report, video, packaging (Week 3)
 Report (single PDF, 20-30 pages excl. appendices; FirstnameLastname_Capstone_Report.pdf)
-- [ ] 6.1 Executive summary (1 page, incl. key caveat)
-- [ ] 6.2 The problem
-- [ ] 6.3 Discovery findings
-- [ ] 6.4 Requirements (with IDs)
-- [ ] 6.5 Architecture and design (alternatives and why)
-- [ ] 6.6 Implementation
-- [ ] 6.7 Evaluation (method, results, interpretation, "figures should be treated with caution because...", date and number of hidden-set runs)
-- [ ] 6.8 Governance and risk
-- [ ] 6.9 Requirements revision
-- [ ] 6.10 Conclusions
-- [ ] 6.11 Appendices (workbooks, prompt register, result tables, confusion matrix)
-- [ ] 6.12 AI tool use declaration (about half a page)
-- [ ] 6.13 All figures/tables numbered, captioned, referenced in text
+- [x] 6.1 Executive summary (1 page, incl. key caveat)
+- [x] 6.2 The problem
+- [x] 6.3 Discovery findings
+- [x] 6.4 Requirements (with IDs)
+- [x] 6.5 Architecture and design (alternatives and why)
+- [x] 6.6 Implementation
+- [x] 6.7 Evaluation (method, results, interpretation, "figures should be treated with caution because...", date and number of hidden-set runs)
+- [x] 6.8 Governance and risk
+- [x] 6.9 Requirements revision
+- [x] 6.10 Conclusions
+- [x] 6.11 Appendices (workbooks, prompt register, result tables, confusion matrix)
+- [x] 6.12 AI tool use declaration (about half a page)
+- [x] 6.13 All figures/tables numbered, captioned, referenced in text
 
 Video (MP4 1080p, 20 min +/- 2, FirstnameLastname_Capstone_Video.mp4)
 - [ ] 6.14 Script/outline following 0-2 problem, 2-5 discovery, 5-7 system, 7-14 demo, 14-17 numbers, 17-18 governance, 18-20 next
