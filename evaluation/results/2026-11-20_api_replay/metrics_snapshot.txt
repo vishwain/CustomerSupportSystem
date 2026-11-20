@@ -1,0 +1,109 @@
+# HELP support_tickets_total Tickets processed, by channel and outcome (answered = sent automatically, escalated = to a person).
+# TYPE support_tickets_total counter
+support_tickets_total{channel="forum",outcome="answered"} 6.0
+support_tickets_total{channel="chat",outcome="escalated"} 13.0
+support_tickets_total{channel="docs_comment",outcome="escalated"} 5.0
+support_tickets_total{channel="email",outcome="answered"} 19.0
+support_tickets_total{channel="chat",outcome="answered"} 16.0
+support_tickets_total{channel="email",outcome="escalated"} 25.0
+support_tickets_total{channel="docs_comment",outcome="answered"} 11.0
+support_tickets_total{channel="forum",outcome="escalated"} 6.0
+# HELP support_rule_fired_total Final rule per ticket (none = no rule fired).
+# TYPE support_rule_fired_total counter
+support_rule_fired_total{rule="none"} 52.0
+support_rule_fired_total{rule="must_escalate_intent:unclear_request"} 8.0
+support_rule_fired_total{rule="no_retrieval_hit"} 7.0
+support_rule_fired_total{rule="must_escalate_intent:compliance_request"} 3.0
+support_rule_fired_total{rule="must_escalate_intent:feature_request"} 4.0
+support_rule_fired_total{rule="must_escalate_intent:data_residency"} 8.0
+support_rule_fired_total{rule="guardrail:grounding"} 2.0
+support_rule_fired_total{rule="must_escalate_intent:security_incident"} 7.0
+support_rule_fired_total{rule="instruction_integrity"} 2.0
+support_rule_fired_total{rule="billing_dispute"} 4.0
+support_rule_fired_total{rule="prior_contact_claim"} 1.0
+support_rule_fired_total{rule="risk_terms:security"} 1.0
+support_rule_fired_total{rule="risk_terms:legal"} 1.0
+support_rule_fired_total{rule="must_escalate_alternative:feature_request"} 1.0
+# HELP support_request_latency_seconds POST /tickets wall time, request in to response out (includes waiting for the one-at-a-time lock and the provider).
+# TYPE support_request_latency_seconds histogram
+support_request_latency_seconds_bucket{le="0.05",outcome="answered"} 0.0
+support_request_latency_seconds_bucket{le="0.1",outcome="answered"} 0.0
+support_request_latency_seconds_bucket{le="0.25",outcome="answered"} 0.0
+support_request_latency_seconds_bucket{le="0.5",outcome="answered"} 0.0
+support_request_latency_seconds_bucket{le="1.0",outcome="answered"} 0.0
+support_request_latency_seconds_bucket{le="2.0",outcome="answered"} 3.0
+support_request_latency_seconds_bucket{le="3.0",outcome="answered"} 28.0
+support_request_latency_seconds_bucket{le="4.0",outcome="answered"} 43.0
+support_request_latency_seconds_bucket{le="5.0",outcome="answered"} 48.0
+support_request_latency_seconds_bucket{le="7.5",outcome="answered"} 48.0
+support_request_latency_seconds_bucket{le="10.0",outcome="answered"} 52.0
+support_request_latency_seconds_bucket{le="15.0",outcome="answered"} 52.0
+support_request_latency_seconds_bucket{le="20.0",outcome="answered"} 52.0
+support_request_latency_seconds_bucket{le="30.0",outcome="answered"} 52.0
+support_request_latency_seconds_bucket{le="60.0",outcome="answered"} 52.0
+support_request_latency_seconds_bucket{le="+Inf",outcome="answered"} 52.0
+support_request_latency_seconds_count{outcome="answered"} 52.0
+support_request_latency_seconds_sum{outcome="answered"} 180.7636958003277
+support_request_latency_seconds_bucket{le="0.05",outcome="escalated"} 0.0
+support_request_latency_seconds_bucket{le="0.1",outcome="escalated"} 0.0
+support_request_latency_seconds_bucket{le="0.25",outcome="escalated"} 36.0
+support_request_latency_seconds_bucket{le="0.5",outcome="escalated"} 47.0
+support_request_latency_seconds_bucket{le="1.0",outcome="escalated"} 47.0
+support_request_latency_seconds_bucket{le="2.0",outcome="escalated"} 47.0
+support_request_latency_seconds_bucket{le="3.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="4.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="5.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="7.5",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="10.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="15.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="20.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="30.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="60.0",outcome="escalated"} 49.0
+support_request_latency_seconds_bucket{le="+Inf",outcome="escalated"} 49.0
+support_request_latency_seconds_count{outcome="escalated"} 49.0
+support_request_latency_seconds_sum{outcome="escalated"} 16.50036960025318
+# HELP support_pipeline_latency_seconds Ingest to final decision row, from the decision log (FR-27).
+# TYPE support_pipeline_latency_seconds histogram
+support_pipeline_latency_seconds_bucket{le="0.05"} 0.0
+support_pipeline_latency_seconds_bucket{le="0.1"} 0.0
+support_pipeline_latency_seconds_bucket{le="0.25"} 47.0
+support_pipeline_latency_seconds_bucket{le="0.5"} 47.0
+support_pipeline_latency_seconds_bucket{le="1.0"} 47.0
+support_pipeline_latency_seconds_bucket{le="2.0"} 51.0
+support_pipeline_latency_seconds_bucket{le="3.0"} 78.0
+support_pipeline_latency_seconds_bucket{le="4.0"} 92.0
+support_pipeline_latency_seconds_bucket{le="5.0"} 97.0
+support_pipeline_latency_seconds_bucket{le="7.5"} 97.0
+support_pipeline_latency_seconds_bucket{le="10.0"} 101.0
+support_pipeline_latency_seconds_bucket{le="15.0"} 101.0
+support_pipeline_latency_seconds_bucket{le="30.0"} 101.0
+support_pipeline_latency_seconds_bucket{le="+Inf"} 101.0
+support_pipeline_latency_seconds_count 101.0
+support_pipeline_latency_seconds_sum 188.45399999999998
+# HELP support_guardrail_activations_total Guardrail activations, by guardrail and where it fired: route (escalated before any model call) or validate (output blocked; style warns).
+# TYPE support_guardrail_activations_total counter
+support_guardrail_activations_total{guardrail="must_escalate",result="escalate",stage="route"} 31.0
+support_guardrail_activations_total{guardrail="style",result="warn",stage="validate"} 5.0
+support_guardrail_activations_total{guardrail="grounding",result="block",stage="validate"} 2.0
+support_guardrail_activations_total{guardrail="instruction_integrity",result="escalate",stage="route"} 2.0
+support_guardrail_activations_total{guardrail="tone_scope",result="escalate",stage="route"} 5.0
+support_guardrail_activations_total{guardrail="risk_terms",result="escalate",stage="route"} 2.0
+# HELP support_intent_confidence Calibrated intent confidence per ticket (routing threshold 0.95).
+# TYPE support_intent_confidence histogram
+support_intent_confidence_bucket{le="0.2"} 0.0
+support_intent_confidence_bucket{le="0.4"} 1.0
+support_intent_confidence_bucket{le="0.6"} 3.0
+support_intent_confidence_bucket{le="0.8"} 5.0
+support_intent_confidence_bucket{le="0.9"} 7.0
+support_intent_confidence_bucket{le="0.95"} 9.0
+support_intent_confidence_bucket{le="0.99"} 11.0
+support_intent_confidence_bucket{le="1.0"} 101.0
+support_intent_confidence_bucket{le="+Inf"} 101.0
+support_intent_confidence_count 101.0
+support_intent_confidence_sum 98.40399999999997
+# HELP support_invalid_requests_total Requests rejected as malformed (HTTP 422).
+# TYPE support_invalid_requests_total counter
+support_invalid_requests_total 3.0
+# HELP support_automation_paused Kill switch state (1 = paused, every ticket escalates).
+# TYPE support_automation_paused gauge
+support_automation_paused 0.0
