@@ -124,7 +124,7 @@ Loads the same components as the harness (about 10 s) and logs every request to
 | --- | --- |
 | `POST /tickets` | One ticket in (`ticket_id`, `channel`, `subject`, `body`, `received_at`). Returns `outcome` (answered or escalated), `reason`, `rule_fired`, `citations`, the reply or holding message, and the `decision_id` of the final decision-log row. |
 | `GET /health` | Status, which components loaded, kill-switch state. |
-| `GET /metrics` | Prometheus text format: tickets by outcome, rules fired, invalid requests, latency, kill switch. |
+| `GET /metrics` | Prometheus (prometheus_client): tickets by channel and outcome, rule fired, request latency histogram, guardrail activations, intent-confidence histogram, invalid requests, kill switch. |
 
 Send one ticket (in PowerShell use `curl.exe`; `curl` is an alias there):
 
@@ -135,6 +135,21 @@ curl.exe -s -X POST http://127.0.0.1:8000/tickets -H "Content-Type: application/
 Malformed input (missing or wrong-typed field, blank body, unknown channel, broken JSON) gets HTTP 422 with
 the field and the problem. `API_NO_MODELS=1` / `API_NO_LLM=1` start a degraded server that escalates
 everything.
+
+## Monitoring (Prometheus and Grafana)
+
+Needs Docker. Files in `monitoring/`: `docker-compose.yml`, `prometheus.yml` (scrapes the API every 5 s),
+Grafana provisioning, and the dashboard `grafana/dashboards/support_pipeline.json`
+(rebuilt by `python monitoring/build_dashboard.py`).
+
+```
+uvicorn src.api:app --host 0.0.0.0 --port 8001          # terminal 1
+docker compose -f monitoring/docker-compose.yml up -d     # terminal 2
+python docs/replay_api.py                                 # traffic: validation set + engineered tickets
+```
+
+Prometheus at http://localhost:9090 (Status > Targets: `support-api` UP); Grafana at http://localhost:3000
+(admin / admin), dashboard "CloudServe support pipeline". Stop with `docker compose -f monitoring/docker-compose.yml down`.
 
 ## Tests
 

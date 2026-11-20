@@ -1,0 +1,32 @@
+# 5b.8 monitoring: Prometheus scrapes the API's /metrics; Grafana shows the support pipeline dashboard.
+# Start the API on the host first (port 8001, listening on all interfaces so the containers can reach it):
+#     uvicorn src.api:app --host 0.0.0.0 --port 8001
+# Then, from the repo root:
+#     docker compose -f monitoring/docker-compose.yml up -d
+# Prometheus: http://localhost:9090 (Status > Targets shows the API as UP)
+# Grafana:    http://localhost:3000 (admin / admin; dashboard "CloudServe support pipeline" is provisioned)
+# Stop:       docker compose -f monitoring/docker-compose.yml down
+name: support-monitoring
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=15d"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9090:9090"]
+    extra_hosts: ["host.docker.internal:host-gateway"]   # Linux; Docker Desktop provides it already
+    restart: unless-stopped
+  grafana:
+    image: grafana/grafana:12.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/support_pipeline.json
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+    restart: unless-stopped

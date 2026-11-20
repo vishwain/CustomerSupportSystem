@@ -8,8 +8,10 @@ Endpoints
                     the decision ID of the final decision-log row. Runs the same pipeline as the harness
                     (Ingest, Classify, Retrieve, Route, Generate, Validate), so every request is logged.
     GET  /health    liveness plus which components loaded and whether the kill switch is on.
-    GET  /metrics   Prometheus text format. Request and outcome counters now; wired to the full figure set
-                    and Grafana at 5b.8.
+    GET  /metrics   Prometheus exposition (prometheus_client, 5b.8): tickets by channel and outcome, rule fired,
+                    request latency histogram, guardrail activations, intent-confidence histogram, invalid
+                    requests, kill-switch state. Scraped by monitoring/prometheus.yml; dashboard in
+                    monitoring/grafana/dashboards/support_pipeline.json.
 
 Malformed input (missing or wrong-typed fields, empty body, unknown channel, broken JSON) is rejected with
 HTTP 422 and a list of which field is wrong and why; it never reaches the pipeline and never crashes the
@@ -33,7 +35,11 @@ from typing import Any, Literal
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, Response
+from prometheus_client import (CONTENT_TYPE_LATEST, CollectorRegistry, Counter, Gauge, Histogram, disable_created_metrics,
+                               generate_latest)
+
+disable_created_metrics()  # drop the *_created series: noise on the dashboard
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from src.ingest import CHANNELS, MAX_TEXT_CHARS, normalise
@@ -107,6 +113,55 @@ class _State:
 
 S = _State()
 
+# Prometheus metrics (5b.8). Own registry, so a test or a reload never registers the same name twice.
+REGISTRY = CollectorRegistry()
+TICKETS = Counter("support_tickets_total", "Tickets processed, by channel and outcome (answered = sent "
+                  "automatically, escalated = to a person).", ["channel", "outcome"], registry=REGISTRY)
+RULES = Counter("support_rule_fired_total", "Final rule per ticket (none = no rule fired).", ["rule"],
+                registry=REGISTRY)
+LATENCY = Histogram("support_request_latency_seconds", "POST /tickets wall time, request in to response out "
+                    "(includes waiting for the one-at-a-time lock and the provider).", ["outcome"],
+                    buckets=(0.05, 0.1, 0.25, 0.5, 1, 2, 3, 4, 5, 7.5, 10, 15, 20, 30, 60), registry=REGISTRY)
+PIPELINE_LATENCY = Histogram("support_pipeline_latency_seconds", "Ingest to final decision row, from the "
+                             "decision log (FR-27).", buckets=(0.05, 0.1, 0.25, 0.5, 1, 2, 3, 4, 5, 7.5, 10, 15, 30),
+                             registry=REGISTRY)
+GUARDRAILS = Counter("support_guardrail_activations_total", "Guardrail activations, by guardrail and where it "
+                     "fired: route (escalated before any model call) or validate (output blocked; style warns).",
+                     ["guardrail", "stage", "result"], registry=REGISTRY)
+CONFIDENCE = Histogram("support_intent_confidence", "Calibrated intent confidence per ticket (routing threshold "
+                       "0.95).", buckets=(0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 0.99, 1.0), registry=REGISTRY)
+INVALID = Counter("support_invalid_requests_total", "Requests rejected as malformed (HTTP 422).",
+                  registry=REGISTRY)
+PAUSED = Gauge("support_automation_paused", "Kill switch state (1 = paused, every ticket escalates).",
+               registry=REGISTRY)
+PAUSED.set_function(lambda: float(automation_paused()[0]))
+
+# Route rules that are guardrails (Governance Framework section 4): they stop a ticket before any model call.
+ROUTE_GUARDRAILS = {"kill_switch": "kill_switch", "kill_switch_at_send": "kill_switch",
+                    "instruction_integrity": "instruction_integrity", "prior_contact_claim": "tone_scope",
+                    "billing_dispute": "tone_scope", "risk_terms": "risk_terms",
+                    "must_escalate_intent": "must_escalate", "must_escalate_alternative": "must_escalate",
+                    "classification_failed": "confidence_floor"}
+
+
+def record_metrics(channel: str, r: dict[str, Any], rows: list[dict[str, Any]], wall_s: float) -> None:
+    outcome = "answered" if r["action"] == "auto_respond" else "escalated"
+    TICKETS.labels(channel, outcome).inc()
+    RULES.labels(r["rule_fired"]).inc()
+    LATENCY.labels(outcome).observe(wall_s)
+    PIPELINE_LATENCY.observe(r["latency_ms"] / 1000)
+    if r.get("intent_confidence") is not None and r.get("intent") not in (None, "unknown"):
+        CONFIDENCE.observe(float(r["intent_confidence"]))
+    base = r["rule_fired"].split(":")[0]
+    if base in ROUTE_GUARDRAILS:
+        GUARDRAILS.labels(ROUTE_GUARDRAILS[base], "route", "escalate").inc()
+    for row in rows:
+        if row["stage"] != "validation":
+            continue
+        for name, result in (row.get("guardrail_results") or {}).items():
+            if result in ("block", "warn"):
+                GUARDRAILS.labels(name, "validate", result).inc()
+
 
 def _count(key: str, n: int = 1) -> None:
     S.counts[key] = S.counts.get(key, 0) + n
@@ -136,6 +191,7 @@ app = FastAPI(title="CloudServe support pipeline", version=API_VERSION, lifespan
 @app.exception_handler(RequestValidationError)
 async def invalid_ticket(request: Request, exc: RequestValidationError) -> JSONResponse:
     _count("invalid")
+    INVALID.inc()
     details = []
     for e in exc.errors():
         loc = [str(x) for x in e.get("loc", [])]
@@ -167,6 +223,7 @@ def _citations(rows: list[dict[str, Any]]) -> list[Citation]:
 def post_ticket(t: TicketIn) -> TicketOut:
     from evaluation.harness import process_ticket
 
+    t0 = time.perf_counter()
     run_id = f"api-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:6]}"
     rec = normalise(t.model_dump(), 0)
     with S.lock:
@@ -184,6 +241,7 @@ def post_ticket(t: TicketIn) -> TicketOut:
     _count(f"rule:{r['rule_fired']}")
     S.latency_ms_sum += r["latency_ms"]
     S.latency_n += 1
+    record_metrics(rec.channel, r, rows, time.perf_counter() - t0)
     pkg = r.get("escalation_package") or {}
     return TicketOut(
         ticket_id=rec.ticket_id, outcome="answered" if answered else "escalated", action=r["action"],
@@ -206,25 +264,10 @@ def health() -> dict[str, Any]:
             "tickets_processed": S.counts.get("answered", 0) + S.counts.get("escalated", 0)}
 
 
-@app.get("/metrics", response_class=PlainTextResponse)
-def metrics() -> str:
-    """Prometheus text exposition. Stub until 5b.8 (prometheus_client, latency histogram, confidence)."""
-    L = ["# HELP support_tickets_total Tickets processed by outcome.", "# TYPE support_tickets_total counter"]
-    for o in ("answered", "escalated"):
-        L.append(f'support_tickets_total{{outcome="{o}"}} {S.counts.get(o, 0)}')
-    L += ["# HELP support_rule_fired_total Final rule per ticket (none = no rule).",
-          "# TYPE support_rule_fired_total counter"]
-    for k, v in sorted(S.counts.items()):
-        if k.startswith("rule:"):
-            L.append(f'support_rule_fired_total{{rule="{k[5:]}"}} {v}')
-    L += ["# HELP support_invalid_requests_total Requests rejected as malformed (HTTP 422).",
-          "# TYPE support_invalid_requests_total counter", f"support_invalid_requests_total {S.counts.get('invalid', 0)}",
-          "# HELP support_latency_ms_sum Total ingest-to-final latency.", "# TYPE support_latency_ms_sum counter",
-          f"support_latency_ms_sum {S.latency_ms_sum}", "# TYPE support_latency_ms_count counter",
-          f"support_latency_ms_count {S.latency_n}",
-          "# HELP support_automation_paused Kill switch state (1 = paused).", "# TYPE support_automation_paused gauge",
-          f"support_automation_paused {int(automation_paused()[0])}"]
-    return "\n".join(L) + "\n"
+@app.get("/metrics")
+def metrics() -> Response:
+    """Prometheus exposition format, scraped by monitoring/prometheus.yml."""
+    return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
 
 __all__ = ["app", "MAX_TEXT_CHARS"]
