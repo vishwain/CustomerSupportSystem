@@ -151,7 +151,7 @@ python docs/replay_api.py                                 # traffic: validation 
 ```
 
 Prometheus at http://localhost:9090 (Status > Targets: `support-api` UP); Grafana at http://localhost:3000
-(admin / admin), dashboard "CloudServe support pipeline". Stop with `docker compose -f monitoring/docker-compose.yml down`.
+dashboard "CloudServe support pipeline" (opens read-only without login; no password is stored in the repo). Stop with `docker compose -f monitoring/docker-compose.yml down`.
 
 ## Tests
 
@@ -226,3 +226,7 @@ per channel), `python docs/guardrail_demo.py` (every guardrail firing), `python 
 Delete `storage/` to reset all runtime state; the next run rebuilds the store and retrains the classifier.
 If the repo sits in a synced folder (Google Drive, OneDrive) and SQLite reports locking errors, add
 `--storage <local folder>` to the harness.
+
+## Attribution
+
+Third-party libraries, data and AI assistance are listed in [docs/ATTRIBUTION.md](docs/ATTRIBUTION.md).

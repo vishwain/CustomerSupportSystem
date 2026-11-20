@@ -4,7 +4,8 @@
 # Then, from the repo root:
 #     docker compose -f monitoring/docker-compose.yml up -d
 # Prometheus: http://localhost:9090 (Status > Targets shows the API as UP)
-# Grafana:    http://localhost:3000 (admin / admin; dashboard "CloudServe support pipeline" is provisioned)
+# Grafana:    http://localhost:3000 (dashboard "CloudServe support pipeline" opens as a read-only viewer;
+#             Grafana's own first-login admin prompt asks you to set a password; none is stored here)
 # Stop:       docker compose -f monitoring/docker-compose.yml down
 name: support-monitoring
 services:
@@ -19,8 +20,6 @@ services:
   grafana:
     image: grafana/grafana:12.1.0
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/support_pipeline.json
