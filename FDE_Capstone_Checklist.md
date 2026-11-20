@@ -98,8 +98,8 @@ Build checkpoints (Build Specification):
 - [x] 5.14 Tests runnable with a single documented command and passing (A12)
 - [x] 5.15 FastAPI interface (src/api.py) working
 - [x] 5.16 README written and verified: fresh clone on another machine/dir follows steps to running (A1); .env.example complete
-- [ ] 5.17 Validation-set evaluation (80 tickets); record business + technical results honestly
-- [ ] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
+- [x] 5.17 Validation-set evaluation (80 tickets); record business + technical results honestly
+- [x] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
 - [ ] 5.19 Hidden/final evaluation run: ONCE only; record date and number of runs (see clarifications)
 - [ ] 5.20 Revise PRD to v2.0 (compulsory) -> Workbooks/Stage_5_PRD_Revision_Log.docx
 - [ ] 5.21 Revision log Section 1: summary counts and reviewer
