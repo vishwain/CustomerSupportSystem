@@ -171,7 +171,7 @@ the system uses.
 | `config/routing.json` | must-escalate alternative floor | `python docs/must_escalate_check.py --write-config` |
 | `config/generation.json` | answer prompt version (PR-03) | `python docs/generate_eval.py --write-config` |
 | `config/guardrails.json` | grounding floor | `python docs/grounding_floor.py --write-config` |
-| `config/runtime.json` | kill switch: `"automation_paused": true` escalates the next ticket (FR-31) | edit by hand |
+| `config/runtime.json` | kill switch: `"automation_paused": true` escalates the next ticket (FR-31) | `python -m src.killswitch on --by NAME --reason WHY` (`off`, `status`); see docs/GOVERNANCE.md |
 | `config/messages.json`, `config/intent_descriptions.json` | customer-facing text; intent descriptions for the retrieval query | edit by hand |
 
 Other evidence scripts: `python -m src.ingest --input data/development_tickets.json` (one normalised ticket

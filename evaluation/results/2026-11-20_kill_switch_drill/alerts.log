@@ -1,0 +1,6 @@
+2026-11-20T13:23:22.161Z ALERT decision log write failed run=20261120T132155Z_kill_switch_drill_9dc5 ticket=VAL-0001 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id
+2026-11-20T13:23:22.280Z ALERT decision log write failed run=20261120T132155Z_kill_switch_drill_9dc5 ticket=VAL-0004 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id
+2026-11-20T13:23:25.517Z ALERT decision log write failed run=20261120T132155Z_kill_switch_drill_9dc5 ticket=VAL-0005 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id
+2026-11-20T13:25:37.886Z ALERT decision log write failed run=20261120T132424Z_kill_switch_drill_396f ticket=VAL-0001 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id
+2026-11-20T13:25:38.003Z ALERT decision log write failed run=20261120T132424Z_kill_switch_drill_396f ticket=VAL-0004 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id
+2026-11-20T13:25:38.466Z ALERT decision log write failed run=20261120T132424Z_kill_switch_drill_396f ticket=VAL-0005 stage=final: UNIQUE constraint failed: decisions.run_id, decisions.ticket_id

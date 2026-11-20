@@ -50,7 +50,7 @@ from src.generate import GenerationResult, Generator, compose_reply, load_messag
 from src.guardrails import GuardrailConfig, Validator, log_validation, private_terms_for
 from src.ingest import INGEST_VERSION, InputFileError, TicketRecord, load
 from src.retrieve import RetrievalResult, Retriever, SentenceTransformerEmbedder, build_retriever, log_retrieval
-from src.route import RouteDecision, Router, log_routing
+from src.route import RouteDecision, Router, automation_paused, log_routing
 from evaluation.metrics import build_report, write_outputs as write_metrics
 from src.logging_store import DecisionLog, LogWriteError, file_sha256, utc_now
 
@@ -212,6 +212,14 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
                 draft, would_send = candidate, True
                 reason = f"Automatic answer: {decision.reason}. Passed Validate ({v.reason})."
     action = "auto_respond" if (would_send and validated) else "escalate"
+    if action == "auto_respond":
+        # FR-31: re-check the kill switch at send time, so a ticket already past Route when the switch is
+        # flipped is not sent. The validated answer goes to the agent as a draft; nothing is dropped.
+        paused, why = automation_paused(router.runtime_path)
+        if paused:
+            action, rule = "escalate", "kill_switch_at_send"
+            reason = ("Automation paused while this ticket was in flight" + (f" ({why})" if why else "")
+                      + "; the validated answer was not sent and is attached as a draft for an agent.")
     gen_info = {} if gen is None else {
         "gen_action": gen.action, "mode": gen.mode, "can_answer": gen.can_answer, "citations_ok": gen.citations_ok,
         "cited": gen.cited, "unresolved": gen.unresolved, "would_send": would_send, "validated": validated,
@@ -228,6 +236,10 @@ def run_pipeline(record: TicketRecord, log: DecisionLog, comp: Components | None
         urgency=cls.urgency, generation=gen_info,
         customer_message=draft if action == "auto_respond" else messages["holding_message"],
     )
+
+
+FALLBACK_HOLDING = ("Thank you for contacting CloudServe support. A member of our team will review your request "
+                    "and reply to you directly.")
 
 
 def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | None = None) -> dict[str, Any]:
@@ -277,6 +289,15 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         outcome = Outcome(action="escalate", error="log_write_failed",
                           reason="Final decision row could not be written; fail closed, nothing sent.")
 
+    # Every escalation tells the customer a person will reply, including the fail-closed paths
+    # (malformed input, internal error, log write failure), which build their Outcome without one.
+    customer_message = outcome.customer_message
+    if outcome.action == "escalate" and not customer_message:
+        try:
+            customer_message = ((comp.messages if comp and comp.messages else None) or load_messages())["holding_message"]
+        except Exception:  # noqa: BLE001 - the message file must not stop the escalation
+            customer_message = FALLBACK_HOLDING
+
     # 4. Act. Today: record the result. Later: send reply or push to escalation queue.
     return {
         "run_id": log.run_id,
@@ -299,7 +320,7 @@ def process_ticket(record: TicketRecord, log: DecisionLog, comp: Components | No
         "ingest_flags": record.flags,
         "escalation_package": outcome.escalation_package if outcome.action == "escalate" else {},
         "generation": outcome.generation,
-        "customer_message": outcome.customer_message,
+        "customer_message": customer_message,
     }
 
 

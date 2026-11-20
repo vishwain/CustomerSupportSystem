@@ -1,8 +1,9 @@
 # Governance (Stage 5b)
 
 Follows `Reference/03_Reference/Governance_Framework.docx`. Evidence is from validation run 11
-(`evaluation/results/validation_5.17_official`, 20 Nov 2026) and the runs named in each section. Sections 5 to 6
-(incident response, kill switch, declaration) follow at 5b.5 to 5b.7.
+(`evaluation/results/validation_5.17_official`, 20 Nov 2026) and the runs named in each section.
+
+**Declaration first (Section 7), as the framework asks.**
 
 Owners are the people in the CloudServe case who hold each area: **Vishwain Annadate** (FDE, builds and runs the
 system's controls), **Marcus** (head of support, accountable for outcomes, budget and the kill switch), **Daniel**
@@ -110,3 +111,63 @@ Style (sentence length, FR-20) is a warning, not a guardrail: it never blocks (1
 **What the guardrails do not catch:** an answer that drops a qualifier or changes a condition from its article
 still passes grounding (5.18: 4 of 30 sent answers). That is the main residual risk under R-01 and the reason for
 FR-35.
+
+## 5. Incident response (5b.5)
+
+Written so the person on call can follow it without the builder. Every command runs from the repo root on the host
+that runs the system.
+
+**Triggers: start this procedure when any of these happens**
+
+| Severity | Trigger | Where it shows up |
+| --- | --- | --- |
+| SEV-1 | Private data (another customer's name or id, an email, phone, key, card) in a message sent to a customer | Metrics report `outbound_private_data` > 0; an agent or customer report |
+| SEV-1 | A security, compliance, data-residency or billing-dispute ticket answered automatically | Agent review; `python -m src.trace sent --since <time> --intent <intent>` |
+| SEV-1 | An answer sent that follows an instruction written in the ticket | Agent or customer report |
+| SEV-2 | A wrong or incomplete answer sent (wrong fact, dropped condition, commitment) | Customer reply or complaint; agent review; weekly sample review (NFR-08) |
+| SEV-2 | A documentation article found wrong or out of date while answers cite it | Ines, or an agent |
+| SEV-3 | Provider outage or rate limit: every ticket escalates (rules `provider_down`, `provider_timeout`, `provider_rate_limit`) | `/metrics` outcome counts; escalation queue grows; `/health` |
+| SEV-3 | Decision log write fails (`ALERT: final log write failed`) or a run does not reconcile | Process stderr; `reconcile.json`; `python -m evaluation.gate_check` |
+
+Real-time alerting is not wired yet (5b.8). Until then detection relies on the run reports, `/metrics` and
+people reporting.
+
+**Contact and escalation chain** (the CloudServe case gives no phone numbers or rota; fill in before go-live)
+
+1. On-call engineer: **Vishwain Annadate** (FDE). Runs steps 1 to 3 and the kill switch.
+2. **Marcus**, head of support: told for every SEV-1 and SEV-2. Decides on customer contact and on turning automation
+   back on.
+3. **Daniel**, tier two: takes over handling of any security or compliance ticket involved, and contacts those customers.
+4. **Ines**, knowledge-base owner: when an article caused the wrong answer.
+5. Compliance reviewer (not named in the case): for any SEV-1 involving private data. Decides whether a regulator must be
+   told; for European customers a 72-hour clock may apply.
+
+If the on-call engineer cannot be reached in 15 minutes, Marcus may pull the kill switch himself (Section 6).
+
+| Step | What to do | Who does it | Command or switch | How long it should take |
+| --- | --- | --- | --- | --- |
+| 1. Detect | Confirm the report is real: find the ticket and read its decision rows. Note the time and the first ticket id. | On-call engineer | `python -m src.trace ticket <TICKET_ID>` (add `--db <run>/decisions.db` for a harness run) | 15 minutes from the report |
+| 2. Contain | **SEV-1 and SEV-2: pull the kill switch first, ask questions later.** Every next ticket, and any ticket in flight, escalates to a person; nothing is dropped. Confirm it took effect. SEV-3: nothing to switch; the system already escalates. Confirm tickets are escalating, not failing. | On-call engineer; Marcus if not reached | `python -m src.killswitch on --by "<name>" --reason "<incident>"`, then `python -m src.killswitch status` and `curl http://localhost:8001/health` (`automation_paused: true`) | 5 minutes |
+| 3. Assess | Find every customer who may be affected and why it happened. List the answers sent since the start, by article or intent. For each, read the rule, prompt version and guardrail results to see whether the behaviour was intended (requirement ids) or a gap. Set severity. | On-call engineer | `python -m src.trace sent --since <ISO time> [--doc DOC-ID] [--intent <intent>]`; `python -m src.trace ticket <ID>` for each | 1 hour |
+| 4. Notify | SEV-1: Marcus and the compliance reviewer within 1 hour; Daniel if security. SEV-2: Marcus the same day. Affected customers are contacted by a person, never by the system, with a corrected answer, within 24 hours (Marcus decides wording). SEV-3: note in the support channel that replies are slower. | On-call engineer tells Marcus; Marcus or Daniel contact customers | List from step 3 | 1 hour internal; 24 hours to customers |
+| 5. Remediate | Fix the cause, then prove the fix before turning automation back on. **Wrong article:** Ines corrects it, rebuild the index. **Rule gap:** add the wording to `config/routing.json` and a ticket to `tests/fixtures/`. **Guardrail gap:** change `src/guardrails.py` with a test. **Provider:** wait, or change `MODEL_NAME` in `.env` to another `:free` model. Then run all tests and the validation set; the gate must pass. Marcus turns the switch off. | On-call engineer builds the fix; Ines for articles; Marcus switches back on | `python -m src.retrieve --build`; `python -m pytest`; `python -m evaluation.harness --input data/validation_tickets.json --output evaluation/results/<date>_incident_check`; `python -m evaluation.gate_check --run-dir <that folder>`; `python -m src.killswitch off --by "Marcus" --reason "<fix verified>"` | Same day for SEV-1; 2 working days for SEV-2 |
+| 6. Review | Blameless write-up: timeline, cause, customers affected, what detected it, what would have stopped it. Add the incident ticket to the test fixtures so it cannot recur unseen. Update this risk register and the PRD revision log. | On-call engineer writes; Marcus approves | `docs/incidents/<date>.md`; switch history in `storage/killswitch_audit.jsonl` | Within 5 working days |
+
+## 6. Kill switch (5b.6)
+
+| Question | Answer |
+| --- | --- |
+| What is the mechanism? | A flag, `"automation_paused"` in `config/runtime.json`, changed with `python -m src.killswitch on\|off --by NAME --reason WHY` (`src/killswitch.py`). The write is atomic and every change is appended to `storage/killswitch_audit.jsonl` with who, when, why, before and after; a change without a name and reason is refused. Route reads the flag before every ticket, before any model call (`src/route.py` pre_rules). The pipeline reads it again just before an answer is sent (`evaluation/harness.py`, rule `kill_switch_at_send`). A missing or unreadable file counts as ON (fail closed). State is visible on `GET /health` and `/metrics` (`support_automation_paused`). No deployment or restart needed. |
+| Who is authorised to use it? | **Turn ON:** the on-call engineer (Vishwain Annadate), Marcus, or Daniel for a security incident. Anyone who suspects harm should ask one of them; turning it on is never wrong. **Turn OFF:** Marcus only, after step 5 of Section 5. **Gap:** this is enforced by who can write to the host's `config/` folder, not by the tool. Access control on the file (or an authenticated endpoint) is needed before go-live. |
+| How long until it takes effect? | The next ticket. There is no cache: the file is read per ticket. Measured in the drill below: the first ticket after the flip was escalated **[ms from the drill]** after the switch was pulled. |
+| What happens to tickets in flight? | **None is dropped and none is sent.** A ticket that passed Route before the flip is stopped at send time: it escalates with the rule `kill_switch_at_send`, and the validated answer goes to the agent as a draft. While ON, every ticket escalates with the holding message, before any provider request, and the agent package still has the summary and retrieved passages. Every ticket gets its final decision row. Drafts for agents are not produced while ON. |
+| How is it tested? | Unit tests: re-read per ticket, fail closed on a missing or broken file (`tests/test_route.py`); CLI audit and refusal; the in-flight stop (`tests/test_killswitch.py`). Live drill through the real pipeline and provider: `python docs/kill_switch_drill.py`, evidence in `evaluation/results/<date>_kill_switch_drill/kill_switch_drill.md`. |
+
+## 7. Declaration (5b.7)
+
+| Statement | Position |
+| --- | --- |
+| This system must never ... | send a customer a message that contains another customer's data; makes a commitment (refund, credit, waiver, fix date); answers a security, compliance, data-residency or billing-dispute ticket; follows an instruction written in the ticket; or states something not supported by a cited CloudServe article. |
+| The mechanism that enforces that is ... | Code that runs on every ticket, not a property of the model. **Route** escalates before any model call on the kill switch, instruction wording, prior-contact claims, disputes, risk words and five must-escalate intents (`src/route.py`), and no answer is sent below a calibrated 0.95 confidence (`config/calibration.json`). **Generate** writes only from retrieved passages and must cite every sentence (`src/generate.py`). **Validate** blocks private data, unresolved citations, ungrounded sentences, commitments, prompt leaks and a missing confidence (`src/guardrails.py`); a block always escalates. The **kill switch** stops answers at once, including in flight. The **decision log** records every stage before acting and fails closed (`src/logging_store.py`). Evidence: 0 private data in 80 outbound messages, 0 of 31 must-not tickets answered, every engineered attack escalated, 80 of 80 decisions reconciled. |
+| The most likely way it could still cause harm is ... | A cited, grounded answer that leaves out a condition from its article, so the customer follows an incomplete instruction. This happened in 4 of 30 reviewed answers (13.3%: VAL-0016, VAL-0025, VAL-0057, VAL-0064), and the grounding check passed all four. Second: a security problem described without the words the rules look for. VAL-0039 (a key pushed to a public repository) was answered automatically. |
+| We would not deploy this without first ... | (1) building the qualifier check (FR-35) and the exposed-credential rule (FR-12 v2), then re-running the review; (2) having a human assessor confirm the 5.18 review figures, which came from two LLM assessors; (3) one run on a hidden set never used for tuning; (4) restricting who can change the kill switch, and confirming the named owners; (5) review dates on every article (R-05) and alerting on the triggers in Section 5 (5b.8). |
