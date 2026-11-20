@@ -1,0 +1,60 @@
+ticket_id,item_type,sentences,citations,unsupported_sentences,citations_supporting,block_justified,escalation_correct,summary_accurate,correctness,completeness,tone,notes
+VAL-0002,escalated,0,0,,,,y,y,5,4,4,Must-escalate unclear_request; no context to answer. holding message is generic: says a person will reply but gives no timing
+VAL-0003,escalated,0,0,,,,y,y,5,4,4,"Unclear request, nothing to retrieve against. holding message is generic: says a person will reply but gives no timing"
+VAL-0004,answered,1,1,0,1,,,,4,3,4,s1 supported. Answer gives only the clock-drift check; no next step if drift is not the cause (single-sentence reply).
+VAL-0005,answered,4,4,0,4,,,,5,5,4,All supported; s4 answers the expiry question directly; s1-s3 are background the customer did not ask for.
+VAL-0006,escalated,0,0,,,,y,y,5,4,4,"Subject says MFA, body says invalid-credentials with a correct password: ambiguous, no passage passed cutoff; a person should handle. Restatement takes subject verbatim from ticket. holding message is generic: says a person will reply but gives no timing"
+VAL-0007,escalated,0,0,,,,y,y,5,4,4,Unclear request asking for a call. holding message is generic: says a person will reply but gives no timing; no acknowledgement of urgency.
+VAL-0009,escalated,0,0,,,,y,y,5,4,4,"Compliance must-escalate. DOC-SEC-003#c01 step 4 would partly answer, but compliance evidence is a must-escalate class. Subject 'Retention period question' is the ticket's own subject."
+VAL-0011,answered,4,4,0,4,,,,5,5,5,
+VAL-0012,answered,4,4,0,4,,,,5,5,5,
+VAL-0013,answered,3,3,0,3,,,,4,4,4,"s2 'may be billed' softens 'are billed' (acceptable). s3 'rather than the first of the month' is an inference from 'anniversary of the subscription date' (borderline, counted supported). Usage-alert step omitted; reply is self-service steps rather than an explanation of the charge."
+VAL-0014,escalated,0,0,,,,n,y,2,4,4,"Rollback request answerable from DOC-DEPLOY-002 (best hit 0.48, just under cutoff); not a must-escalate class. Near-identical ticket VAL-0011 was answered fully. Escalation delays an urgent customer. Summary accurate."
+VAL-0015,escalated,0,0,,,,y,y,5,4,4,Unclear request asking for a call. holding message is generic: says a person will reply but gives no timing
+VAL-0016,answered,5,5,1,4,,,,4,4,4,"s4: cites DOC-PERF-002#c01, which says request concurrency (not request count) reacts faster than processor utilisation; 'request count' is only in DOC-PERF-001, which s4 does not cite; s4 also drops 'if load is predictable'. Misses PERF-002 step 1 (check whether the service is at its configured maximum), which is highly relevant to 'autoscaling enabled but slow at peak'."
+VAL-0017,escalated,0,0,,,,y,y,5,4,4,Unclear request. holding message is generic: says a person will reply but gives no timing
+VAL-0020,escalated,0,0,,,,y,y,5,4,4,"Feature request must-escalate. Ticket subject ('custom retention') does not match body (staged rollouts); summary copies the ticket subject, adds nothing."
+VAL-0023,answered,4,4,0,4,,,,3,3,4,"All sentences supported, but the reply uses the migration article; the customer is a new signup asking where to start a first deployment (DOC-ONB-001 fits better). No first-deploy steps given."
+VAL-0024,answered,2,2,0,2,,,,4,4,4,s1 supported ('configured expiry' is a mild paraphrase) but irrelevant: a revoked/expired key could not read. s2 answers the problem (read-only scope). Does not say how to fix (re-issue key with write scope).
+VAL-0025,answered,4,4,1,3,,,,4,4,4,"s2: 'Increase the initial delay to thirty seconds' drops the qualifier: passage says thirty seconds is 'a reasonable starting point for services that load models or caches'. Customer already raised the timeout twice; reply does not say a port mismatch looks like a timeout, which is the key point."
+VAL-0026,escalated,0,0,,,,y,y,5,4,4,Data residency must-escalate (region migration needs support). Summary accurate. holding message is generic: says a person will reply but gives no timing
+VAL-0028,answered,3,3,0,3,,,,5,4,4,All supported. Omits step 4 (registry reachability) and the build-log note.
+VAL-0029,escalated,0,0,,,,n,y,2,4,4,"Onboarding question answerable from DOC-ONB-001 (best 0.44, below cutoff; same text as the VAL-0036 draft). Not a must-escalate class. Summary accurate."
+VAL-0030,escalated,0,0,,,,y,y,5,4,4,Feature request must-escalate. holding message is generic: says a person will reply but gives no timing
+VAL-0031,escalated,0,0,,,,n,y,2,4,4,"Same ticket as VAL-0011, which was answered fully; DOC-DEPLOY-002#c01 scored 0.51 against a 0.51 cutoff. Not a must-escalate class; escalation delays an urgent rollback. Summary accurate."
+VAL-0032,escalated,0,0,,,,y,y,5,4,4,Feature request must-escalate. holding message is generic: says a person will reply but gives no timing
+VAL-0033,answered,3,3,0,3,,,,5,4,4,All supported; s1 answers the signature problem. Subject mentions duplicate deliveries; the idempotency step (c01 step 4) is omitted. s2/s3 are marginal.
+VAL-0035,escalated,0,0,,,,y,y,5,4,4,Unclear request. holding message is generic: says a person will reply but gives no timing
+VAL-0036,blocked,4,4,0,4,n,,,5,5,4,All 4 sentences are verbatim from DOC-ONB-001#c00 and answer the question exactly. Block was a false positive (grounding score on s1 too low despite verbatim text).
+VAL-0037,escalated,0,0,,,,y,y,5,4,4,Data residency/compliance must-escalate; customer needs a definite answer. Summary accurate.
+VAL-0038,escalated,0,0,,,,y,y,4,4,4,"No passage passed cutoff (PERF-001 at 0.50 would partly help); p95 doubled with no customer change may be a platform issue, so a person is reasonable. Summary accurate."
+VAL-0039,answered,2,2,0,2,,,,3,3,4,"Both sentences supported, but s1 (rotate first, then revoke) and s2 (exposed key: revoke immediately) conflict for this exact case and the reply does not reconcile them. A key pushed to a public repo is a security exposure (DOC-SEC-001 lists it as a compromise cause); arguably should have escalated. No mention of checking the audit log for misuse."
+VAL-0041,answered,3,3,0,3,,,,4,3,4,"s2 'may be running and accruing charges' replaces 'billed at the same rate as production'; a mild inference, counted supported but loses the actual point. s3 'rather than the first of the month' is an inference (borderline, counted supported). Usage-alert step omitted."
+VAL-0043,escalated,0,0,,,,y,y,5,4,4,Security must-escalate. Customer asked what to do right now; holding message gives no immediate guidance. Summary uses the ticket's own subject.
+VAL-0047,answered,2,2,0,2,,,,4,3,3,Both supported. s1 is redundant ('tighter limits... limited more tightly') and s2 repeats it. Omits rate-limit headers and backoff on 429.
+VAL-0048,escalated,0,0,,,,y,y,5,4,4,Security must-escalate. Customer asked what to do now; holding message gives no immediate guidance.
+VAL-0049,escalated,0,0,,,,y,y,4,4,4,"Subject says the key is exposed while the body describes a read-only scope problem: conflicting, possible security concern, so a person is reasonable, though DOC-AUTH-004 could answer the body. Summary copies the subject from the ticket."
+VAL-0050,blocked,4,4,0,4,n,,,5,4,4,All 4 sentences are verbatim from DOC-ONB-001#c00 and fit the ticket. Block was a false positive.
+VAL-0051,answered,3,3,0,3,,,,3,3,4,"All supported. s2 (level filter, a volume fix) is irrelevant to stopped forwarding. Omits the key Note: forwarding pauses after one hour of failures and must be resumed manually once the destination is healthy, which matches 'not resumed by itself; destination is healthy'."
+VAL-0053,answered,3,3,0,3,,,,4,4,5,All supported. Usage-alert step omitted.
+VAL-0054,escalated,0,0,,,,y,y,5,4,4,Data residency must-escalate; written confirmation for a third party needs a person. Summary accurate.
+VAL-0056,answered,4,4,0,4,,,,5,4,4,"All supported. Does not say a port mismatch looks like a timeout, which matters because the customer already raised the timeout."
+VAL-0057,answered,4,4,1,3,,,,5,4,4,s2: 'Increase the initial delay to thirty seconds' drops the qualifier ('a reasonable starting point for services that load models or caches').
+VAL-0058,answered,3,3,0,3,,,,4,4,4,"All supported. s2 (scopes) is not relevant to a 401. Omits the Note that keys issued to individual users are removed when that user is deleted, a likely cause. Subject mentions an exposed key but the reply does not cover immediate revocation."
+VAL-0060,answered,2,2,0,2,,,,5,4,5,All supported; s1 answers it.
+VAL-0061,answered,3,3,0,3,,,,5,4,4,All supported; s3 is marginal.
+VAL-0064,answered,3,3,1,2,,,,4,5,4,s1: 'Use cursor pagination for large result sets' changes the passage's condition ('for anything that may change while you iterate'). s1 also recommends the page-by-page approach the customer says takes hours; s3 (export endpoint) is the real answer.
+VAL-0065,answered,3,3,0,3,,,,4,4,4,"s2 'not the first of the month' is an inference (borderline, counted supported); s3 'left running' is a mild paraphrase. Usage-alert step omitted."
+VAL-0066,escalated,0,0,,,,y,y,5,4,4,"Data residency must-escalate. Ticket subject (backup regions) differs from body; summary copies the ticket subject, adds nothing."
+VAL-0067,escalated,0,0,,,,y,y,5,4,4,"Security incident (unrecognised address, unclaimed resources) must-escalate. Summary accurate. No immediate guidance in the holding message."
+VAL-0068,escalated,0,0,,,,y,y,5,4,4,Security incident must-escalate. Summary accurate.
+VAL-0069,answered,2,2,0,2,,,,5,4,5,All supported. Omits the redeploy-after-change step.
+VAL-0071,answered,4,4,0,4,,,,5,4,4,s2 'choose overage if you want service to continue' follows from the passage. Does not say where or how to switch the cap to overage.
+VAL-0073,answered,4,4,0,4,,,,5,4,4,All supported ('left running' and 'not necessarily the first of the month' are acceptable paraphrases).
+VAL-0074,answered,2,2,0,2,,,,4,3,4,"Both supported. s1 points to the right view but does not explain how group and direct roles interact; omits 'prefer group membership to direct role assignment' (step 4), which fits a permissions review."
+VAL-0075,answered,3,3,0,3,,,,5,4,4,All supported; s2 answers it (read-only scope). s3 (rotation) is irrelevant. Does not say how to get write access.
+VAL-0076,escalated,0,0,,,,y,y,5,4,4,Data residency must-escalate. Summary accurate.
+VAL-0077,answered,1,1,0,1,,,,5,4,4,"s1 'rather than the first of the month' is an inference from 'anniversary of the subscription date' (counted supported). Does not explicitly say 'yes, this is expected' or where to see the period dates."
+VAL-0078,escalated,0,0,,,,y,y,5,4,4,Subject (restore taking hours) conflicts with body (connection errors after scaling up); no passage passed cutoff; a person should handle. Restatement copies the ticket's subject and first sentence.
+VAL-0079,escalated,0,0,,,,y,y,5,4,4,Data residency must-escalate. Subject mismatched to body but taken from ticket.
+VAL-0080,answered,3,4,0,4,,,,5,4,4,"s1 'to resolve dependency resolution failures' is supported by c00 (unpinned dependency is a common cause) and c01 (cause in large majority); borderline overstatement, counted supported. Omits the registry-reachability step and the build-log note."

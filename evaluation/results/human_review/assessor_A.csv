@@ -1,0 +1,60 @@
+ticket_id,item_type,sentences,citations,unsupported_sentences,citations_supporting,block_justified,escalation_correct,summary_accurate,correctness,completeness,tone,notes
+VAL-0002,escalated,0,0,,,,y,y,5,3,4,
+VAL-0003,escalated,0,0,,,,y,y,5,3,4,
+VAL-0004,answered,1,1,0,1,,,,4,3,4,Only the time-sync step given; recovery code/admin reset steps omitted.
+VAL-0005,answered,4,4,0,4,,,,5,5,4,
+VAL-0006,escalated,0,0,,,,y,y,4,3,4,Ticket is invalid-credentials login failure; nothing passed cutoff.
+VAL-0007,escalated,0,0,,,,y,y,5,3,4,Holding message does not acknowledge request for a call.
+VAL-0009,escalated,0,0,,,,y,y,5,3,4,
+VAL-0011,answered,4,4,0,4,,,,5,5,4,
+VAL-0012,answered,4,4,0,4,,,,5,5,4,
+VAL-0013,answered,3,3,0,3,,,,4,3,4,"Does not address the unrecognised service directly; s2 hedged with ""may"" (acceptable)."
+VAL-0014,escalated,0,0,,,,n,y,2,2,3,Urgent rollback ticket; DOC-DEPLOY-002 answers identical tickets (VAL-0011/12) but fell just under cutoff (0.48); escalation unnecessary; holding message gives no timeframe for outage.
+VAL-0015,escalated,0,0,,,,y,y,5,3,4,
+VAL-0016,answered,5,5,1,4,,,,4,3,4,"s4: 'scale on request count' cites DOC-PERF-002#c01 which says request concurrency, not request count (that is in PERF-001); link not supporting. Misses max-instance, cooldown, short-spike points."
+VAL-0017,escalated,0,0,,,,y,y,5,3,4,
+VAL-0020,escalated,0,0,,,,y,y,5,3,4,Subject/body mismatch copied faithfully.
+VAL-0023,answered,4,4,0,4,,,,4,3,4,Generic migration advice; does not say how to deploy the container.
+VAL-0024,answered,2,2,0,2,,,,5,4,4,
+VAL-0025,answered,4,4,1,4,,,,4,4,4,"s2: 'Increase the initial delay to thirty seconds' drops qualifier; DOC-DEPLOY-001#c01 says 30s is a reasonable starting point, not a fixed value."
+VAL-0026,escalated,0,0,,,,y,y,5,3,4,
+VAL-0028,answered,3,3,0,3,,,,4,4,4,Registry reachability step omitted.
+VAL-0029,escalated,0,0,,,,y,y,3,3,4,Docs cutoff miss (ONB-001 0.44); could arguably have been answered.
+VAL-0030,escalated,0,0,,,,y,y,5,3,4,
+VAL-0031,escalated,0,0,,,,n,y,2,2,3,DOC-DEPLOY-002#c01 scored 0.51 and fully answers; false escalation of urgent outage; no timeframe in holding message.
+VAL-0032,escalated,0,0,,,,y,y,5,3,4,
+VAL-0033,answered,3,3,0,3,,,,5,4,4,Ticket subject says duplicates but body is signature failure; answer addresses signature.
+VAL-0035,escalated,0,0,,,,y,y,5,3,4,
+VAL-0036,blocked,4,4,0,4,n,,,4,4,4,Draft identical to DOC-ONB-001#c00 resolution steps; grounding block looks like a false positive.
+VAL-0037,escalated,0,0,,,,y,y,5,3,4,
+VAL-0038,escalated,0,0,,,,n,y,3,2,4,PERF-001#c01 (0.50) is the relevant diagnostic article used in VAL-0016; just under cutoff.
+VAL-0039,answered,2,2,0,2,,,,3,3,3,"Supported, but s1 (create replacement first) and s2 (revoke immediately) pull in opposite directions for a publicly exposed key and are not reconciled; no urgency framing."
+VAL-0041,answered,3,3,1,2,,,,4,3,4,s2: 'may be running and accruing charges' not in DOC-BILL-001#c01 (passage says billed at same rate as production); link not supporting.
+VAL-0043,escalated,0,0,,,,y,y,5,2,4,High-urgency security incident; holding message gives no urgency or next step.
+VAL-0047,answered,2,2,0,2,,,,5,3,3,s1 and s2 repeat each other; rate-limit headers and backoff omitted.
+VAL-0048,escalated,0,0,,,,y,y,5,2,4,High-urgency security incident; holding message gives no urgency or next step.
+VAL-0049,escalated,0,0,,,,n,y,2,2,3,DOC-AUTH-004#c01 (0.45) answers body (scopes) as in VAL-0024; subject says exposed key which conflicts with body.
+VAL-0050,blocked,4,4,0,4,n,,,4,4,4,Draft fully supported by DOC-ONB-001#c00; block looks like a false positive.
+VAL-0051,answered,3,3,0,3,,,,3,2,4,s2 (debug level filter) is supported but off-topic for stopped forwarding; note that forwarding pauses after one hour of failures and must be resumed manually is missing.
+VAL-0053,answered,3,3,0,3,,,,4,3,4,Does not address the unrecognised service directly.
+VAL-0054,escalated,0,0,,,,y,y,5,3,4,
+VAL-0056,answered,4,4,0,4,,,,4,4,4,
+VAL-0057,answered,4,4,1,4,,,,4,4,4,s2: 'increase the initial delay to thirty seconds' drops qualifier (30s is only a reasonable starting point).
+VAL-0058,answered,3,3,0,3,,,,4,3,3,s2 scopes (read-only) of marginal relevance to a 401; draft is a paste of resolution steps; subject says exposed key but body does not.
+VAL-0060,answered,2,2,0,2,,,,5,4,4,
+VAL-0061,answered,3,3,0,3,,,,5,4,4,
+VAL-0064,answered,3,3,1,3,,,,5,5,4,s1: 'cursor pagination for large result sets' changes the passage condition ('anything that may change while you iterate').
+VAL-0065,answered,3,3,0,3,,,,4,4,4,
+VAL-0066,escalated,0,0,,,,y,y,5,3,4,
+VAL-0067,escalated,0,0,,,,y,y,5,2,4,High-urgency security incident; holding message gives no urgency or next step.
+VAL-0068,escalated,0,0,,,,y,y,5,2,4,High-urgency security incident; holding message gives no urgency or next step.
+VAL-0069,answered,2,2,0,2,,,,4,4,4,Redeploy/restart step omitted.
+VAL-0071,answered,4,4,0,4,,,,5,4,4,
+VAL-0073,answered,4,4,0,4,,,,4,4,4,
+VAL-0074,answered,2,2,0,2,,,,4,3,4,Does not answer how group membership interacts with direct roles beyond effective permissions view; prefer-groups point omitted.
+VAL-0075,answered,3,3,0,3,,,,4,4,4,s3 rotation advice not what the ticket asked.
+VAL-0076,escalated,0,0,,,,y,y,5,3,4,
+VAL-0077,answered,1,1,0,1,,,,5,4,4,
+VAL-0078,escalated,0,0,,,,y,y,4,3,4,Subject (restore) contradicts body (connection error); copied faithfully.
+VAL-0079,escalated,0,0,,,,y,y,5,3,4,
+VAL-0080,answered,3,4,0,4,,,,5,4,4,
