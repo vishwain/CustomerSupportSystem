@@ -100,8 +100,8 @@ Build checkpoints (Build Specification):
 - [x] 5.16 README written and verified: fresh clone on another machine/dir follows steps to running (A1); .env.example complete
 - [x] 5.17 Validation-set evaluation (80 tickets); record business + technical results honestly
 - [x] 5.18 Human review sample: at least 50 responses, 2 assessors, for hallucination rate; CSAT proxy rubric; citation accuracy check
-- [ ] 5.19 Hidden/final evaluation run: ONCE only; record date and number of runs (see clarifications)
-- [ ] 5.20 Revise PRD to v2.0 (compulsory) -> Workbooks/Stage_5_PRD_Revision_Log.docx
+- [x] 5.19 Hidden/final evaluation run: ONCE only; record date and number of runs (see clarifications)
+- [x] 5.20 Revise PRD to v2.0 (compulsory) -> Workbooks/Stage_5_PRD_Revision_Log.docx
 - [ ] 5.21 Revision log Section 1: summary counts and reviewer
 - [ ] 5.22 Section 2: each change: ID, v1 text, v2 text, specific trigger, agreed by
 - [ ] 5.23 Section 3: each v1 assumption: held or not, what found, what changed
