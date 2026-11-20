@@ -1,0 +1,3 @@
+{"at": "2026-11-20T13:30:09+00:00", "by": "Vishwain Annadate (kill switch drill)", "reason": "drill start: switch OFF", "before": false, "after": false, "file": "config\\runtime.json"}
+{"at": "2026-11-20T13:30:11+00:00", "by": "Vishwain Annadate (kill switch drill)", "reason": "drill: switch ON while VAL-0004 is in flight (after Route and Generate)", "before": false, "after": true, "file": "config\\runtime.json"}
+{"at": "2026-11-20T13:30:12+00:00", "by": "Vishwain Annadate (kill switch drill)", "reason": "drill: switch OFF, automatic answers resume", "before": true, "after": false, "file": "config\\runtime.json"}

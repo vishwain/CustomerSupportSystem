@@ -1,10 +1,17 @@
 {
-  "run_id": "20261120T132424Z_kill_switch_drill_396f",
+  "run_ids": [
+    "20261120T132845Z_kill_switch_drill_5238_p1",
+    "20261120T132845Z_kill_switch_drill_5238_p2",
+    "20261120T132845Z_kill_switch_drill_5238_p3",
+    "20261120T132845Z_kill_switch_drill_5238_p4"
+  ],
   "started_with_paused": false,
   "rows": [
     {
       "phase": "1 OFF",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p1",
       "ticket_id": "VAL-0001",
+      "log_written": true,
       "action": "auto_respond",
       "rule_fired": "none",
       "reason": "Automatic answer: no rule fired; intent api_key_issue confidence 1.00 >= threshold 0.95; 2 passage(s) passed the cutoff. Passed Validate (all blocking checks passed; warnings: FR-20: 21.0 words per sentence on average, longest 25).",
@@ -13,11 +20,13 @@
       "reply_sent": true,
       "draft_kept_for_agent": false,
       "customer_message": "This is an automated reply from CloudServe Support. It is based on our help articles listed below.\n\nHello,\n\nCheck the API keys page for the key's status and exp",
-      "latency_ms": 679
+      "latency_ms": 1485
     },
     {
       "phase": "2 IN FLIGHT",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p2",
       "ticket_id": "VAL-0004",
+      "log_written": true,
       "action": "escalate",
       "rule_fired": "kill_switch_at_send",
       "reason": "Automation paused while this ticket was in flight; the validated answer was not sent and is attached as a draft for an agent.",
@@ -26,38 +35,13 @@
       "reply_sent": false,
       "draft_kept_for_agent": true,
       "customer_message": "Thank you for contacting CloudServe Support. A member of our support team will look at your request and reply to you.",
-      "latency_ms": 253
+      "latency_ms": 304
     },
     {
       "phase": "3 ON",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p3",
       "ticket_id": "VAL-0001",
-      "action": "escalate",
-      "rule_fired": "none",
-      "reason": "Final decision row could not be written; fail closed, nothing sent.",
-      "provider_requests": 0,
-      "cached": null,
-      "reply_sent": false,
-      "draft_kept_for_agent": false,
-      "customer_message": "",
-      "latency_ms": 112,
-      "ms_from_flip_to_decision": 133
-    },
-    {
-      "phase": "3 ON",
-      "ticket_id": "VAL-0004",
-      "action": "escalate",
-      "rule_fired": "none",
-      "reason": "Final decision row could not be written; fail closed, nothing sent.",
-      "provider_requests": 0,
-      "cached": null,
-      "reply_sent": false,
-      "draft_kept_for_agent": false,
-      "customer_message": "",
-      "latency_ms": 104
-    },
-    {
-      "phase": "3 ON",
-      "ticket_id": "VAL-0005",
+      "log_written": true,
       "action": "escalate",
       "rule_fired": "kill_switch",
       "reason": "automation paused",
@@ -66,26 +50,59 @@
       "reply_sent": false,
       "draft_kept_for_agent": false,
       "customer_message": "Thank you for contacting CloudServe Support. A member of our support team will look at your request and reply to you.",
-      "latency_ms": 129
+      "latency_ms": 161,
+      "ms_from_flip_to_decision": 209
     },
     {
-      "phase": "4 OFF",
-      "ticket_id": "VAL-0005",
+      "phase": "3 ON",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p3",
+      "ticket_id": "VAL-0004",
+      "log_written": true,
       "action": "escalate",
-      "rule_fired": "none",
-      "reason": "Final decision row could not be written; fail closed, nothing sent.",
+      "rule_fired": "kill_switch",
+      "reason": "automation paused",
       "provider_requests": 0,
       "cached": null,
       "reply_sent": false,
       "draft_kept_for_agent": false,
-      "customer_message": "",
-      "latency_ms": 284,
-      "ms_from_flip_to_decision": 290
+      "customer_message": "Thank you for contacting CloudServe Support. A member of our support team will look at your request and reply to you.",
+      "latency_ms": 160
+    },
+    {
+      "phase": "3 ON",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p3",
+      "ticket_id": "VAL-0005",
+      "log_written": true,
+      "action": "escalate",
+      "rule_fired": "kill_switch",
+      "reason": "automation paused",
+      "provider_requests": 0,
+      "cached": null,
+      "reply_sent": false,
+      "draft_kept_for_agent": false,
+      "customer_message": "Thank you for contacting CloudServe Support. A member of our support team will look at your request and reply to you.",
+      "latency_ms": 180
+    },
+    {
+      "phase": "4 OFF",
+      "run_id": "20261120T132845Z_kill_switch_drill_5238_p4",
+      "ticket_id": "VAL-0005",
+      "log_written": true,
+      "action": "auto_respond",
+      "rule_fired": "none",
+      "reason": "Automatic answer: no rule fired; intent api_usage_question confidence 1.00 >= threshold 0.95; 2 passage(s) passed the cutoff. Passed Validate (all blocking checks passed).",
+      "provider_requests": 0,
+      "cached": true,
+      "reply_sent": true,
+      "draft_kept_for_agent": false,
+      "customer_message": "This is an automated reply from CloudServe Support. It is based on our help articles listed below.\n\nHello,\n\nCursors expire after one hour. Long-running iteratio",
+      "latency_ms": 388,
+      "ms_from_flip_to_decision": 433
     }
   ],
   "flips": [
     {
-      "at": "2026-11-20T13:25:36+00:00",
+      "at": "2026-11-20T13:30:09+00:00",
       "by": "Vishwain Annadate (kill switch drill)",
       "reason": "drill start: switch OFF",
       "before": false,
@@ -93,7 +110,7 @@
       "file": "config\\runtime.json"
     },
     {
-      "at": "2026-11-20T13:25:37+00:00",
+      "at": "2026-11-20T13:30:11+00:00",
       "by": "Vishwain Annadate (kill switch drill)",
       "reason": "drill: switch ON while VAL-0004 is in flight (after Route and Generate)",
       "before": false,
@@ -101,7 +118,7 @@
       "file": "config\\runtime.json"
     },
     {
-      "at": "2026-11-20T13:25:38+00:00",
+      "at": "2026-11-20T13:30:12+00:00",
       "by": "Vishwain Annadate (kill switch drill)",
       "reason": "drill: switch OFF, automatic answers resume",
       "before": true,
@@ -109,16 +126,17 @@
       "file": "config\\runtime.json"
     }
   ],
-  "final_rows": 3,
+  "final_rows": 6,
   "tickets_processed": 6,
   "checks": {
-    "ON: every ticket escalated by the kill switch": false,
+    "ON: every ticket escalated by the kill switch": true,
     "ON: no provider request": true,
     "ON: no reply sent; customer gets the holding message": true,
     "IN FLIGHT: not sent; escalated at send time": true,
     "IN FLIGHT: validated answer kept as a draft for the agent": true,
-    "Nothing dropped: one final row per ticket processed": false,
+    "Nothing dropped: one final row per ticket processed": true,
+    "ON: customer gets the holding message": true,
     "Switch OFF at the end": true
   },
-  "ok": false
+  "ok": true
 }
