@@ -1,0 +1,415 @@
+{
+  "overall": {
+    "n": 80,
+    "answered": 51,
+    "resolution_rate": 63.8,
+    "eligible_n": 46,
+    "eligible_answered": 38,
+    "resolution_rate_eligible": 82.6,
+    "hit3_n": 53,
+    "hit3": 88.7,
+    "reviewed_n": 59,
+    "quality_csat": 4.02,
+    "reviewed_answers": 30,
+    "citation_links": 92,
+    "citation_accuracy_review": 95.7,
+    "hallucinating_answers": 4,
+    "citation_validity_automated": 100.0
+  },
+  "dimensions": {
+    "tier": {
+      "segments": {
+        "business": {
+          "n": 30,
+          "answered": 25,
+          "resolution_rate": 83.3,
+          "eligible_n": 21,
+          "eligible_answered": 19,
+          "resolution_rate_eligible": 90.5,
+          "hit3_n": 22,
+          "hit3": 95.5,
+          "reviewed_n": 18,
+          "quality_csat": 4.06,
+          "reviewed_answers": 13,
+          "citation_links": 35,
+          "citation_accuracy_review": 94.3,
+          "hallucinating_answers": 2,
+          "citation_validity_automated": 100.0
+        },
+        "enterprise": {
+          "n": 8,
+          "answered": 4,
+          "resolution_rate": 50.0,
+          "eligible_n": 6,
+          "eligible_answered": 4,
+          "resolution_rate_eligible": 66.7,
+          "hit3_n": 6,
+          "hit3": 83.3,
+          "reviewed_n": 5,
+          "quality_csat": 4.0,
+          "reviewed_answers": 1,
+          "citation_links": 3,
+          "citation_accuracy_review": 100.0,
+          "hallucinating_answers": 0,
+          "citation_validity_automated": 100.0
+        },
+        "standard": {
+          "n": 42,
+          "answered": 22,
+          "resolution_rate": 52.4,
+          "eligible_n": 19,
+          "eligible_answered": 15,
+          "resolution_rate_eligible": 78.9,
+          "hit3_n": 25,
+          "hit3": 84.0,
+          "reviewed_n": 36,
+          "quality_csat": 4.0,
+          "reviewed_answers": 16,
+          "citation_links": 54,
+          "citation_accuracy_review": 96.3,
+          "hallucinating_answers": 2,
+          "citation_validity_automated": 100.0
+        }
+      },
+      "best": "business",
+      "comparisons": {
+        "enterprise": {
+          "vs": "business",
+          "gap_pts": 23.8,
+          "ci95": [
+            -6.8,
+            61.1
+          ],
+          "verdict": "caveat: 6 eligible tickets, under 20; not judged"
+        },
+        "standard": {
+          "vs": "business",
+          "gap_pts": 11.5,
+          "ci95": [
+            -11.6,
+            34.8
+          ],
+          "verdict": "caveat: 19 eligible tickets, under 20; not judged"
+        }
+      },
+      "hit3_gap": {
+        "best": "business",
+        "worst": "standard",
+        "gap_pts": 11.5,
+        "ci95": [
+          -8.3,
+          30.5
+        ],
+        "verdict": "FLAG (not established): over 5 pts, interval includes 5"
+      }
+    },
+    "region": {
+      "segments": {
+        "asia_pacific": {
+          "n": 21,
+          "answered": 14,
+          "resolution_rate": 66.7,
+          "eligible_n": 16,
+          "eligible_answered": 12,
+          "resolution_rate_eligible": 75.0,
+          "hit3_n": 17,
+          "hit3": 76.5,
+          "reviewed_n": 17,
+          "quality_csat": 4.02,
+          "reviewed_answers": 10,
+          "citation_links": 31,
+          "citation_accuracy_review": 96.8,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        },
+        "europe": {
+          "n": 25,
+          "answered": 17,
+          "resolution_rate": 68.0,
+          "eligible_n": 14,
+          "eligible_answered": 12,
+          "resolution_rate_eligible": 85.7,
+          "hit3_n": 19,
+          "hit3": 94.7,
+          "reviewed_n": 15,
+          "quality_csat": 4.09,
+          "reviewed_answers": 7,
+          "citation_links": 24,
+          "citation_accuracy_review": 95.8,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        },
+        "latin_america": {
+          "n": 7,
+          "answered": 2,
+          "resolution_rate": 28.6,
+          "eligible_n": 2,
+          "eligible_answered": 2,
+          "resolution_rate_eligible": 100.0,
+          "hit3_n": 3,
+          "hit3": 100.0,
+          "reviewed_n": 7,
+          "quality_csat": 4.29,
+          "reviewed_answers": 2,
+          "citation_links": 7,
+          "citation_accuracy_review": 85.7,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        },
+        "north_america": {
+          "n": 27,
+          "answered": 18,
+          "resolution_rate": 66.7,
+          "eligible_n": 14,
+          "eligible_answered": 12,
+          "resolution_rate_eligible": 85.7,
+          "hit3_n": 14,
+          "hit3": 92.9,
+          "reviewed_n": 20,
+          "quality_csat": 3.88,
+          "reviewed_answers": 11,
+          "citation_links": 30,
+          "citation_accuracy_review": 96.7,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        }
+      },
+      "best": "asia_pacific",
+      "comparisons": {
+        "europe": {
+          "vs": "asia_pacific",
+          "gap_pts": -10.7,
+          "ci95": [
+            -37.3,
+            18.9
+          ],
+          "verdict": "caveat: 14 eligible tickets, under 20; not judged; better than the reference"
+        },
+        "latin_america": {
+          "vs": "asia_pacific",
+          "gap_pts": -25.0,
+          "ci95": [
+            -49.5,
+            42.4
+          ],
+          "verdict": "caveat: 2 eligible tickets, under 20; not judged; better than the reference"
+        },
+        "north_america": {
+          "vs": "asia_pacific",
+          "gap_pts": -10.7,
+          "ci95": [
+            -37.3,
+            18.9
+          ],
+          "verdict": "caveat: 14 eligible tickets, under 20; not judged; better than the reference"
+        }
+      },
+      "hit3_gap": null
+    },
+    "fluency": {
+      "segments": {
+        "fluent": {
+          "n": 61,
+          "answered": 41,
+          "resolution_rate": 67.2,
+          "eligible_n": 39,
+          "eligible_answered": 33,
+          "resolution_rate_eligible": 84.6,
+          "hit3_n": 44,
+          "hit3": 90.9,
+          "reviewed_n": 44,
+          "quality_csat": 4.08,
+          "reviewed_answers": 24,
+          "citation_links": 74,
+          "citation_accuracy_review": 95.9,
+          "hallucinating_answers": 3,
+          "citation_validity_automated": 100.0
+        },
+        "non_fluent": {
+          "n": 19,
+          "answered": 10,
+          "resolution_rate": 52.6,
+          "eligible_n": 7,
+          "eligible_answered": 5,
+          "resolution_rate_eligible": 71.4,
+          "hit3_n": 9,
+          "hit3": 77.8,
+          "reviewed_n": 15,
+          "quality_csat": 3.86,
+          "reviewed_answers": 6,
+          "citation_links": 18,
+          "citation_accuracy_review": 94.4,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        }
+      },
+      "best": "fluent",
+      "comparisons": {
+        "non_fluent": {
+          "vs": "fluent",
+          "gap_pts": 13.2,
+          "ci95": [
+            -11.7,
+            49.6
+          ],
+          "verdict": "caveat: 7 eligible tickets, under 20; not judged"
+        }
+      },
+      "hit3_gap": null
+    },
+    "length": {
+      "segments": {
+        "long (> 28 words)": {
+          "n": 19,
+          "answered": 10,
+          "resolution_rate": 52.6,
+          "eligible_n": 11,
+          "eligible_answered": 8,
+          "resolution_rate_eligible": 72.7,
+          "hit3_n": 14,
+          "hit3": 78.6,
+          "reviewed_n": 15,
+          "quality_csat": 3.93,
+          "reviewed_answers": 6,
+          "citation_links": 21,
+          "citation_accuracy_review": 100.0,
+          "hallucinating_answers": 0,
+          "citation_validity_automated": 100.0
+        },
+        "short (<= 28 words)": {
+          "n": 61,
+          "answered": 41,
+          "resolution_rate": 67.2,
+          "eligible_n": 35,
+          "eligible_answered": 30,
+          "resolution_rate_eligible": 85.7,
+          "hit3_n": 39,
+          "hit3": 92.3,
+          "reviewed_n": 44,
+          "quality_csat": 4.05,
+          "reviewed_answers": 24,
+          "citation_links": 71,
+          "citation_accuracy_review": 94.4,
+          "hallucinating_answers": 4,
+          "citation_validity_automated": 100.0
+        }
+      },
+      "best": "short (<= 28 words)",
+      "comparisons": {
+        "long (> 28 words)": {
+          "vs": "short (<= 28 words)",
+          "gap_pts": 13.0,
+          "ci95": [
+            -10.1,
+            43.4
+          ],
+          "verdict": "caveat: 11 eligible tickets, under 20; not judged"
+        }
+      },
+      "hit3_gap": null
+    },
+    "channel": {
+      "segments": {
+        "chat": {
+          "n": 22,
+          "answered": 16,
+          "resolution_rate": 72.7,
+          "eligible_n": 13,
+          "eligible_answered": 12,
+          "resolution_rate_eligible": 92.3,
+          "hit3_n": 13,
+          "hit3": 92.3,
+          "reviewed_n": 16,
+          "quality_csat": 4.1,
+          "reviewed_answers": 10,
+          "citation_links": 30,
+          "citation_accuracy_review": 90.0,
+          "hallucinating_answers": 3,
+          "citation_validity_automated": 100.0
+        },
+        "docs_comment": {
+          "n": 16,
+          "answered": 11,
+          "resolution_rate": 68.8,
+          "eligible_n": 8,
+          "eligible_answered": 7,
+          "resolution_rate_eligible": 87.5,
+          "hit3_n": 10,
+          "hit3": 90.0,
+          "reviewed_n": 10,
+          "quality_csat": 4.02,
+          "reviewed_answers": 5,
+          "citation_links": 15,
+          "citation_accuracy_review": 100.0,
+          "hallucinating_answers": 0,
+          "citation_validity_automated": 100.0
+        },
+        "email": {
+          "n": 31,
+          "answered": 18,
+          "resolution_rate": 58.1,
+          "eligible_n": 18,
+          "eligible_answered": 14,
+          "resolution_rate_eligible": 77.8,
+          "hit3_n": 22,
+          "hit3": 86.4,
+          "reviewed_n": 23,
+          "quality_csat": 3.98,
+          "reviewed_answers": 10,
+          "citation_links": 31,
+          "citation_accuracy_review": 96.8,
+          "hallucinating_answers": 1,
+          "citation_validity_automated": 100.0
+        },
+        "forum": {
+          "n": 11,
+          "answered": 6,
+          "resolution_rate": 54.5,
+          "eligible_n": 7,
+          "eligible_answered": 5,
+          "resolution_rate_eligible": 71.4,
+          "hit3_n": 8,
+          "hit3": 87.5,
+          "reviewed_n": 10,
+          "quality_csat": 3.98,
+          "reviewed_answers": 5,
+          "citation_links": 16,
+          "citation_accuracy_review": 100.0,
+          "hallucinating_answers": 0,
+          "citation_validity_automated": 100.0
+        }
+      },
+      "best": "email",
+      "comparisons": {
+        "chat": {
+          "vs": "email",
+          "gap_pts": -14.5,
+          "ci95": [
+            -38.4,
+            14.3
+          ],
+          "verdict": "caveat: 13 eligible tickets, under 20; not judged; better than the reference"
+        },
+        "docs_comment": {
+          "vs": "email",
+          "gap_pts": -9.7,
+          "ci95": [
+            -34.9,
+            27.3
+          ],
+          "verdict": "caveat: 8 eligible tickets, under 20; not judged; better than the reference"
+        },
+        "forum": {
+          "vs": "email",
+          "gap_pts": 6.3,
+          "ci95": [
+            -24.4,
+            44.3
+          ],
+          "verdict": "caveat: 7 eligible tickets, under 20; not judged"
+        }
+      },
+      "hit3_gap": null
+    }
+  }
+}

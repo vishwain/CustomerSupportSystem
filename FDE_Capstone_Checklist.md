@@ -107,8 +107,8 @@ Build checkpoints (Build Specification):
 - [x] 5.23 Section 3: each v1 assumption: held or not, what found, what changed
 - [x] 5.24 Section 4: things that looked wrong but left, why, cost, revisit date
 - [x] 5.25 Section 5: four reflection answers in full sentences (your own judgment, not AI-written)
-- [ ] 5.26 Commit regularly throughout (history reviewed for steady work); no keys in code or history
-- [ ] 5.27 Update Effort Log and daily check-ins
+- [x] 5.26 Commit regularly throughout (history reviewed for steady work); no keys in code or history
+- [x] 5.27 Update Effort Log and daily check-ins
 
 ## Stage 5b: Governance, monitoring, CI (Week 3) (Governance_Framework.docx)
 - [ ] 5b.1 Decision log verified: minimum record fields, coverage reconciles exactly
