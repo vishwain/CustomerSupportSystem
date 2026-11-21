@@ -138,10 +138,10 @@ Report (single PDF, 20-30 pages excl. appendices; FirstnameLastname_Capstone_Rep
 - [x] 6.13 All figures/tables numbered, captioned, referenced in text
 
 Video (MP4 1080p, 20 min +/- 2, FirstnameLastname_Capstone_Video.mp4)
-- [ ] 6.14 Script/outline following 0-2 problem, 2-5 discovery, 5-7 system, 7-14 demo, 14-17 numbers, 17-18 governance, 18-20 next
-- [ ] 6.15 Test audio, enlarge fonts; prepare demo: success, escalation, guardrail block, unattended full run evidence (>= 7 min live)
-- [ ] 6.16 Record take 1 by mid-week 3; review
-- [ ] 6.17 Record take 2; verify length 18-22 min, audio, legibility, you on camera at intro and close
+- [x] 6.14 Script/outline following 0-2 problem, 2-5 discovery, 5-7 system, 7-14 demo, 14-17 numbers, 17-18 governance, 18-20 next
+- [x] 6.15 Test audio, enlarge fonts; prepare demo: success, escalation, guardrail block, unattended full run evidence (>= 7 min live)
+- [x] 6.16 Record take 1 by mid-week 3; review
+- [x] 6.17 Record take 2; verify length 18-22 min, audio, legibility, you on camera at intro and close
 
 Workbooks and logs
 - [x] 6.18 All five stage workbooks genuinely completed
