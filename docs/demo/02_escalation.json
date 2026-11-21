@@ -1,0 +1,9 @@
+{
+  "ticket_id": "DEMO-2-ESCALATE",
+  "channel": "docs_comment",
+  "subject": "Suspicious activity in audit log",
+  "body": "We have found activity in our audit log from an address none of us recognise, going back to yesterday morning. Resources were created that nobody on the team claims. We need help urgently.",
+  "received_at": "2026-03-06T11:13:00Z",
+  "customer_id": "CUST-1175",
+  "customer_name": "Chen Nair"
+}

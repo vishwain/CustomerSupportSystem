@@ -1,0 +1,49 @@
+{
+  "rows": 506,
+  "rows_by_stage": {
+    "ingest": 80,
+    "classification": 80,
+    "retrieval": 80,
+    "routing": 80,
+    "generation": 53,
+    "validation": 53,
+    "final": 80
+  },
+  "framework_fields_present": {
+    "decision_id": true,
+    "timestamp": true,
+    "ticket_id": true,
+    "stage": true,
+    "input_summary": true,
+    "model.name": true,
+    "model.version": true,
+    "prediction": true,
+    "alternatives": true,
+    "sources_used": true,
+    "threshold_applied": true,
+    "action_taken": true,
+    "reason": true,
+    "guardrail_results": true,
+    "prompt_version": true,
+    "requirement_ids": true
+  },
+  "field_problems": [],
+  "responses": {
+    "answered: generated sentences, citations and a Validate pass": 51,
+    "escalation package on final row": 29
+  },
+  "coverage": {
+    "tickets_in": 80,
+    "final_rows": 80,
+    "tickets_without_final": [],
+    "final_rows_without_ticket": [],
+    "duplicate_final_rows": [],
+    "duplicate_stage_rows": [],
+    "duplicate_ticket_ids_in_input": [],
+    "tickets_missing_a_pipeline_row": [],
+    "malformed_tickets": []
+  },
+  "fields_ok": true,
+  "coverage_ok": true,
+  "ok": true
+}

@@ -1,0 +1,9 @@
+{
+  "ticket_id": "DEMO-1-ANSWER",
+  "channel": "email",
+  "subject": "Need to roll back the latest release",
+  "body": "How do I revert to an earlier revision? The release we put out this morning is causing errors and I would rather roll back than try to fix forward.",
+  "received_at": "2026-11-21T09:00:00Z",
+  "customer_id": "CUST-9100",
+  "customer_name": "Demo Customer"
+}
